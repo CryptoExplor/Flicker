@@ -2042,6 +2042,7 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
     if (!connected && isFarcasterEnvironment) {
       try {
         const farcasterConnector = wagmiConfig.connectors.find(c => c.id === 'farcasterMiniApp');
+        console.log('Farcaster connector found:', !!farcasterConnector, wagmiConfig.connectors.map(c => c.id));
         if (farcasterConnector) {
           const conn = await connect(wagmiConfig, { connector: farcasterConnector });
           userAddress = conn.accounts[0];
@@ -2077,8 +2078,13 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
       },
       features: {
         analytics: true,
-        connectMethodsOrder: ["wallet"],
+        // In Farcaster, show the Farcaster connector first so it appears as INSTALLED
+        connectMethodsOrder: isFarcasterEnvironment ? ["wallet"] : ["wallet"],
       },
+      // Surface the Farcaster connector in the modal wallet list
+      featuredWalletIds: isFarcasterEnvironment
+        ? ['farcasterMiniApp']
+        : [],
       allWallets: 'SHOW',
       themeMode: 'dark',
       themeVariables: {
@@ -2278,7 +2284,7 @@ watchAccount(wagmiConfig, {
 
 connectBtn.addEventListener('click', async () => {
   try {
-    // In MiniPay, window.ethereum is always available — connect directly
+    // MiniPay: connect directly via injected window.ethereum
     if (isMiniPayEnvironment) {
       const injectedConnector = wagmiConfig.connectors.find(c => c.id === 'injected');
       if (injectedConnector) {
@@ -2289,12 +2295,23 @@ connectBtn.addEventListener('click', async () => {
       }
       return;
     }
+    // Farcaster: connect directly via farcasterMiniApp connector — no modal needed
+    if (isFarcasterEnvironment) {
+      const farcasterConnector = wagmiConfig.connectors.find(c => c.id === 'farcasterMiniApp');
+      if (farcasterConnector) {
+        const conn = await connect(wagmiConfig, { connector: farcasterConnector });
+        userAddress = conn.accounts[0];
+        showAddress(userAddress);
+        setStatus('Connected via Farcaster!', 'success');
+      }
+      return;
+    }
     if (modal) {
       modal.open();
     }
   } catch (error) {
     console.error('Connect button error:', error);
-    setStatus('Failed to open wallet modal.', 'error');
+    setStatus('Failed to connect wallet.', 'error');
   }
 });
 
