@@ -2292,8 +2292,8 @@ connectBtn.addEventListener('click', async () => {
         userAddress = conn.accounts[0];
         showAddress(userAddress);
         setStatus('MiniPay connected! Gas is paid in cUSD.', 'success');
+        return;
       }
-      return;
     }
     // Farcaster: connect directly via farcasterMiniApp connector — no modal needed
     if (isFarcasterEnvironment) {
@@ -2303,15 +2303,19 @@ connectBtn.addEventListener('click', async () => {
         userAddress = conn.accounts[0];
         showAddress(userAddress);
         setStatus('Connected via Farcaster!', 'success');
+        return;
       }
-      return;
     }
+    // Fallback: open AppKit modal (browser, or if direct connector not found)
     if (modal) {
       modal.open();
     }
   } catch (error) {
     console.error('Connect button error:', error);
-    setStatus('Failed to connect wallet.', 'error');
+    // On error in Farcaster/MiniPay, fall back to modal as last resort
+    if (modal) {
+      modal.open();
+    }
   }
 });
 
