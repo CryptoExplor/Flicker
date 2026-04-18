@@ -93,31 +93,41 @@ const safeLocalStorage = {
   }
 };
 
-// Improved Farcaster detection with timeout
+// Mirrors the logic of the SDK's isInMiniApp() which isn't exported in this SDK version.
+// Farcaster clients host MiniApps in an iframe or React Native WebView and respond to
+// a postMessage context request. If neither condition is met we're in a plain browser.
 async function isFarcasterEmbed() {
-  return Promise.race([
-    (async () => {
-      const isIframe = window.self !== window.top;
-      const hasSDK = typeof sdk !== 'undefined';
-      
-      if (!isIframe || !hasSDK) return false;
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const isSdkReady = sdk.context !== undefined && sdk.context !== null;
-      
-      const checks = {
-        isIframe,
-        hasSDK,
-        isSdkReady,
-        hasValidContext: hasSDK && sdk.context?.user?.fid !== undefined
-      };
+  try {
+    // Short-circuit: plain browser tab — definitely not a MiniApp
+    if (!window.ReactNativeWebView && window === window.parent) return false;
 
-      console.log('Farcaster Detection Checks:', checks);
-      
-      return isIframe && hasSDK && isSdkReady;
-    })(),
-    new Promise(resolve => setTimeout(() => resolve(false), 500))
-  ]);
+    // Wait for the Farcaster host to post context back (up to 800 ms)
+    const contextReady = await Promise.race([
+      new Promise(resolve => {
+        const handler = (e) => {
+          try {
+            const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+            if (data?.type === 'frameContext' || data?.event === 'context') {
+              window.removeEventListener('message', handler);
+              resolve(true);
+            }
+          } catch (_) {}
+        };
+        window.addEventListener('message', handler);
+        // Also check if sdk.context is already resolved
+        Promise.resolve(sdk.context).then(ctx => {
+          if (ctx?.user?.fid) { window.removeEventListener('message', handler); resolve(true); }
+        }).catch(() => {});
+      }),
+      new Promise(resolve => setTimeout(() => resolve(false), 800))
+    ]);
+
+    console.log('Farcaster embed detected:', contextReady);
+    return contextReady;
+  } catch (e) {
+    console.log('isFarcasterEmbed() failed:', e);
+    return false;
+  }
 }
 
 // MiniPay detection — Opera's MiniPay injects window.ethereum with isMiniPay === true
@@ -1952,16 +1962,15 @@ notificationStyles.textContent = `
                                                                                         `;
 document.head.appendChild(notificationStyles);
 (async () => {
-  // Only call Farcaster SDK actions when running inside a Farcaster frame.
-  // MiniPay does not provide the Farcaster SDK and these calls would throw.
+  // sdk.actions.ready() must be called early to dismiss the Farcaster splash screen.
+  // Skip in MiniPay (no Farcaster SDK) and in plain browser tabs.
   if (isMiniPayEmbed()) return;
+  if (!window.ReactNativeWebView && window === window.parent) return;
   try {
     await sdk.actions.ready({ disableNativeGestures: true });
-    console.log('Farcaster SDK initialized successfully');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await sdk.actions.addMiniApp();
+    console.log('Farcaster SDK ready');
   } catch (e) {
-    console.log('Farcaster SDK not available or failed to initialize:', e);
+    console.log('Farcaster SDK ready() failed:', e);
   }
 })();
 
