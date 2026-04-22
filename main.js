@@ -109,12 +109,12 @@ async function isFarcasterEmbed() {
     if (typeof sdk === 'undefined') return false;
 
     // The early IIFE calls sdk.actions.ready() which causes the Farcaster host
-    // to populate sdk.context. Wait up to 1500ms for that to happen.
+    // to populate sdk.context. Wait up to 500ms for that to happen.
     // We check existence only (not .user.fid) — a non-null context IS Farcaster.
     try {
       const ctx = await Promise.race([
         Promise.resolve(sdk.context),
-        new Promise(resolve => setTimeout(() => resolve(undefined), 1500))
+        new Promise(resolve => setTimeout(() => resolve(undefined), 500))
       ]);
       const detected = ctx !== null && ctx !== undefined;
       console.log('Farcaster embed detected:', detected, '| context:', ctx);
