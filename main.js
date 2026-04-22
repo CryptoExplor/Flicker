@@ -98,44 +98,34 @@ const safeLocalStorage = {
 // a postMessage context request. If neither condition is met we're in a plain browser.
 async function isFarcasterEmbed() {
   try {
-    // Short-circuit: plain browser tab — definitely not a MiniApp
+    // Plain browser tab — definitely not a MiniApp
     if (!window.ReactNativeWebView && window === window.parent) return false;
 
-    // Fast-path: if sdk.context already has a user, we're in Farcaster
+    // At this point we're in an iframe (Farcaster web client)
+    // or React Native WebView (Farcaster mobile app)
+    const isIframe = window.self !== window.top;
+    const isRNWebView = !!window.ReactNativeWebView;
+    if (!isIframe && !isRNWebView) return false;
+    if (typeof sdk === 'undefined') return false;
+
+    // The early IIFE calls sdk.actions.ready() which causes the Farcaster host
+    // to populate sdk.context. Wait up to 1500ms for that to happen.
+    // We check existence only (not .user.fid) — a non-null context IS Farcaster.
     try {
-      const existingCtx = await Promise.race([
+      const ctx = await Promise.race([
         Promise.resolve(sdk.context),
-        new Promise(resolve => setTimeout(() => resolve(null), 300))
+        new Promise(resolve => setTimeout(() => resolve(undefined), 1500))
       ]);
-      if (existingCtx?.user?.fid) {
-        console.log('Farcaster embed detected via fast-path sdk.context');
-        return true;
-      }
+      const detected = ctx !== null && ctx !== undefined;
+      console.log('Farcaster embed detected:', detected, '| context:', ctx);
+      return detected;
     } catch (_) { }
 
-    // Wait for the Farcaster host to post context back (up to 2000ms for reliability)
-    const contextReady = await Promise.race([
-      new Promise(resolve => {
-        const handler = (e) => {
-          try {
-            const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-            if (data?.type === 'frameContext' || data?.event === 'context') {
-              window.removeEventListener('message', handler);
-              resolve(true);
-            }
-          } catch (_) { }
-        };
-        window.addEventListener('message', handler);
-        // Also check if sdk.context resolves during the wait
-        Promise.resolve(sdk.context).then(ctx => {
-          if (ctx?.user?.fid) { window.removeEventListener('message', handler); resolve(true); }
-        }).catch(() => { });
-      }),
-      new Promise(resolve => setTimeout(() => resolve(false), 2000))
-    ]);
+    // Synchronous fallback for SDK versions where context is set directly
+    const hasContext = sdk.context !== undefined && sdk.context !== null;
+    console.log('Farcaster embed fallback:', hasContext);
+    return hasContext;
 
-    console.log('Farcaster embed detected:', contextReady);
-    return contextReady;
   } catch (e) {
     console.log('isFarcasterEmbed() failed:', e);
     return false;
