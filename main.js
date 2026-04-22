@@ -101,7 +101,19 @@ async function isFarcasterEmbed() {
     // Short-circuit: plain browser tab — definitely not a MiniApp
     if (!window.ReactNativeWebView && window === window.parent) return false;
 
-    // Wait for the Farcaster host to post context back (up to 800 ms)
+    // Fast-path: if sdk.context already has a user, we're in Farcaster
+    try {
+      const existingCtx = await Promise.race([
+        Promise.resolve(sdk.context),
+        new Promise(resolve => setTimeout(() => resolve(null), 300))
+      ]);
+      if (existingCtx?.user?.fid) {
+        console.log('Farcaster embed detected via fast-path sdk.context');
+        return true;
+      }
+    } catch (_) { }
+
+    // Wait for the Farcaster host to post context back (up to 2000ms for reliability)
     const contextReady = await Promise.race([
       new Promise(resolve => {
         const handler = (e) => {
@@ -114,12 +126,12 @@ async function isFarcasterEmbed() {
           } catch (_) { }
         };
         window.addEventListener('message', handler);
-        // Also check if sdk.context is already resolved
+        // Also check if sdk.context resolves during the wait
         Promise.resolve(sdk.context).then(ctx => {
           if (ctx?.user?.fid) { window.removeEventListener('message', handler); resolve(true); }
         }).catch(() => { });
       }),
-      new Promise(resolve => setTimeout(() => resolve(false), 800))
+      new Promise(resolve => setTimeout(() => resolve(false), 2000))
     ]);
 
     console.log('Farcaster embed detected:', contextReady);
@@ -2170,14 +2182,19 @@ document.head.appendChild(notificationStyles);
       },
       features: {
         analytics: true,
-        // In Farcaster, show the Farcaster connector first so it appears as INSTALLED
-        connectMethodsOrder: isFarcasterEnvironment ? ["wallet"] : ["wallet"],
+        connectMethodsOrder: ["wallet"],
       },
-      // Surface the Farcaster connector in the modal wallet list
-      featuredWalletIds: isFarcasterEnvironment
-        ? ['farcasterMiniApp']
-        : [],
-      allWallets: 'SHOW',
+      // In Farcaster: restrict AppKit to ONLY show the farcasterMiniApp connector.
+      // AppKit has its own wallet scanner that detects browser extensions (Rabby, MetaMask)
+      // and assigns them the INSTALLED badge — this overrides the connector-level fix.
+      // includeWalletIds whitelists exactly which wallets appear in the modal.
+      ...(isFarcasterEnvironment ? {
+        includeWalletIds: ['farcasterMiniApp'],
+        allWallets: 'HIDE',
+      } : {
+        featuredWalletIds: [],
+        allWallets: 'SHOW',
+      }),
       themeMode: 'dark',
       themeVariables: {
         '--w3m-accent': '#49dfb5',
