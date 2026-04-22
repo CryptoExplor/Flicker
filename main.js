@@ -1992,28 +1992,30 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
       previewBtn.classList.remove('hidden');
     }
 
-    isMiniPayEnvironment = isMiniPayEmbed();
-    isFarcasterEnvironment = isMiniPayEnvironment ? false : await isFarcasterEmbed();
+    isFarcasterEnvironment = await isFarcasterEmbed();
+    isMiniPayEnvironment = isFarcasterEnvironment ? false : isMiniPayEmbed();
 
     console.log('=== ENVIRONMENT DETECTION ===');
-    console.log('Detected as MiniPay:', isMiniPayEnvironment);
     console.log('Detected as Farcaster:', isFarcasterEnvironment);
+    console.log('Detected as MiniPay:', isMiniPayEnvironment);
     console.log('Window location:', window.location.href);
     console.log('Is iframe:', window.self !== window.top);
     console.log('Has SDK:', typeof sdk !== 'undefined');
     console.log('SDK Context:', sdk?.context);
     console.log('============================');
 
-    if (isMiniPayEnvironment) {
-      // Running inside Opera MiniPay — show "Open in Browser" link
+    if (isFarcasterEnvironment) {
+      // Running inside Farcaster — show "Open in Browser" link
       externalBanner.href = 'https://celo-nft-phi.vercel.app/';
       externalBannerText.textContent = 'Open in Browser';
       externalBanner.classList.remove('hidden');
-    } else if (isFarcasterEnvironment) {
+    } else if (isMiniPayEnvironment) {
+      // Running inside MiniPay — show "Open in Browser" link
       externalBanner.href = 'https://celo-nft-phi.vercel.app/';
       externalBannerText.textContent = 'Open in Browser';
       externalBanner.classList.remove('hidden');
     } else {
+      // Standard browser — show "Open in Farcaster" link
       externalBanner.href = MINIAPP_URL;
       externalBannerText.textContent = 'Open in Farcaster';
       externalBanner.classList.remove('hidden');
@@ -2021,25 +2023,8 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
 
     let connected = false;
 
-    // --- MiniPay auto-connect (highest priority) ---
-    if (isMiniPayEnvironment) {
-      try {
-        const injectedConnector = wagmiConfig.connectors.find(c => c.id === 'injected');
-        if (injectedConnector) {
-          const conn = await connect(wagmiConfig, { connector: injectedConnector });
-          userAddress = conn.accounts[0];
-          showAddress(userAddress);
-          connected = true;
-          console.log('Connected via MiniPay:', userAddress);
-          setStatus('MiniPay connected! Gas is paid in cUSD.', 'success');
-        }
-      } catch (e) {
-        console.log('MiniPay connection failed:', e);
-      }
-    }
-
-    // --- Farcaster auto-connect ---
-    if (!connected && isFarcasterEnvironment) {
+    // --- Farcaster auto-connect (highest priority) ---
+    if (isFarcasterEnvironment) {
       try {
         const farcasterConnector = wagmiConfig.connectors.find(c => c.id === 'farcasterMiniApp');
         console.log('Farcaster connector found:', !!farcasterConnector, wagmiConfig.connectors.map(c => c.id));
@@ -2063,6 +2048,23 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
         }
       } catch (e) {
         console.log('Farcaster connection failed:', e);
+      }
+    }
+
+    // --- MiniPay auto-connect (fallback) ---
+    if (!connected && isMiniPayEnvironment) {
+      try {
+        const injectedConnector = wagmiConfig.connectors.find(c => c.id === 'injected');
+        if (injectedConnector) {
+          const conn = await connect(wagmiConfig, { connector: injectedConnector });
+          userAddress = conn.accounts[0];
+          showAddress(userAddress);
+          connected = true;
+          console.log('Connected via MiniPay:', userAddress);
+          setStatus('MiniPay connected! Gas is paid in cUSD.', 'success');
+        }
+      } catch (e) {
+        console.log('MiniPay connection failed:', e);
       }
     }
 
@@ -2284,17 +2286,6 @@ watchAccount(wagmiConfig, {
 
 connectBtn.addEventListener('click', async () => {
   try {
-    // MiniPay: connect directly via injected window.ethereum
-    if (isMiniPayEnvironment) {
-      const injectedConnector = wagmiConfig.connectors.find(c => c.id === 'injected');
-      if (injectedConnector) {
-        const conn = await connect(wagmiConfig, { connector: injectedConnector });
-        userAddress = conn.accounts[0];
-        showAddress(userAddress);
-        setStatus('MiniPay connected! Gas is paid in cUSD.', 'success');
-        return;
-      }
-    }
     // Farcaster: connect directly via farcasterMiniApp connector — no modal needed
     if (isFarcasterEnvironment) {
       const farcasterConnector = wagmiConfig.connectors.find(c => c.id === 'farcasterMiniApp');
@@ -2303,6 +2294,17 @@ connectBtn.addEventListener('click', async () => {
         userAddress = conn.accounts[0];
         showAddress(userAddress);
         setStatus('Connected via Farcaster!', 'success');
+        return;
+      }
+    }
+    // MiniPay: connect directly via injected window.ethereum
+    if (isMiniPayEnvironment) {
+      const injectedConnector = wagmiConfig.connectors.find(c => c.id === 'injected');
+      if (injectedConnector) {
+        const conn = await connect(wagmiConfig, { connector: injectedConnector });
+        userAddress = conn.accounts[0];
+        showAddress(userAddress);
+        setStatus('MiniPay connected! Gas is paid in cUSD.', 'success');
         return;
       }
     }
