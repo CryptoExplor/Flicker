@@ -2184,17 +2184,7 @@ document.head.appendChild(notificationStyles);
         analytics: true,
         connectMethodsOrder: ["wallet"],
       },
-      // In Farcaster: restrict AppKit to ONLY show the farcasterMiniApp connector.
-      // AppKit has its own wallet scanner that detects browser extensions (Rabby, MetaMask)
-      // and assigns them the INSTALLED badge — this overrides the connector-level fix.
-      // includeWalletIds whitelists exactly which wallets appear in the modal.
-      ...(isFarcasterEnvironment ? {
-        includeWalletIds: ['farcasterMiniApp'],
-        allWallets: 'HIDE',
-      } : {
-        featuredWalletIds: [],
-        allWallets: 'SHOW',
-      }),
+      allWallets: 'SHOW',
       themeMode: 'dark',
       themeVariables: {
         '--w3m-accent': '#49dfb5',
