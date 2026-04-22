@@ -111,13 +111,13 @@ async function isFarcasterEmbed() {
               window.removeEventListener('message', handler);
               resolve(true);
             }
-          } catch (_) {}
+          } catch (_) { }
         };
         window.addEventListener('message', handler);
         // Also check if sdk.context is already resolved
         Promise.resolve(sdk.context).then(ctx => {
           if (ctx?.user?.fid) { window.removeEventListener('message', handler); resolve(true); }
-        }).catch(() => {});
+        }).catch(() => { });
       }),
       new Promise(resolve => setTimeout(() => resolve(false), 800))
     ]);
@@ -145,7 +145,7 @@ function celebrateMint() {
     origin: { y: 0.6 },
     colors: ['#49dfb5', '#7dd3fc', '#fcd34d']
   });
-  
+
   setTimeout(() => {
     confetti({
       particleCount: 50,
@@ -169,7 +169,7 @@ function animateCounter(element, start, end, duration = 1000) {
   const range = end - start;
   const increment = range / (duration / 16);
   let current = start;
-  
+
   const timer = setInterval(() => {
     current += increment;
     if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
@@ -188,14 +188,14 @@ function setStatus(msg, type = 'info') {
   else if (type === 'error') icon = '❌ ';
   else if (type === 'warning') icon = '⚠️ ';
   else if (type === 'info') icon = 'ℹ️ ';
-  
+
   statusBox.className = `status-box status-${type}`;
   statusBox.insertAdjacentText('afterbegin', icon + msg);
 }
 
 function getImprovedErrorMessage(error) {
   const msg = error.message || error.shortMessage || '';
-  
+
   if (msg.includes('insufficient funds') || msg.includes('insufficient balance')) {
     return 'Not enough CELO in your wallet. Please add funds and try again.';
   } else if (msg.includes('gas')) {
@@ -213,7 +213,7 @@ function getImprovedErrorMessage(error) {
   } else if (error.shortMessage) {
     return error.shortMessage;
   }
-  
+
   return 'Mint failed. Please try again or contact support if the issue persists.';
 }
 
@@ -223,7 +223,7 @@ function showAddress(addr) {
   userAddrBox.classList.remove('hidden');
   connectBtn.classList.add('hidden');
   mintBtn.classList.remove('hidden');
-  
+
   userAddrBox.onclick = () => {
     if (modal) {
       modal.open();
@@ -318,7 +318,7 @@ async function updateSupply(initialLoad = false) {
         animateCounter(totalMintedStat, current, totalNumber, 800);
       }
     }
-    
+
     if (remainingStat && MAX_SUPPLY > 0) {
       const remaining = MAX_SUPPLY - totalNumber;
       remainingStat.textContent = remaining > 0 ? remaining : '0';
@@ -330,7 +330,7 @@ async function updateSupply(initialLoad = false) {
       mintBtn.disabled = true;
       mintBtn.innerText = "SOLD OUT";
       mintBtn.title = "The maximum supply has been reached.";
-      
+
       if (!initialLoad) {
         setStatus(`All ${MAX_SUPPLY} NFTs have been minted!`, "warning");
       }
@@ -355,7 +355,7 @@ function updateUserMintCount() {
     if (yourMintsStat) yourMintsStat.textContent = '--';
     return;
   }
-  
+
   readContract(wagmiConfig, {
     address: contractDetails.address,
     abi: contractDetails.abi,
@@ -366,7 +366,7 @@ function updateUserMintCount() {
     if (yourMintsStat) {
       yourMintsStat.textContent = userMintCount;
     }
-    
+
     if (userMintCount > 0 && !lastMintedTokenId) {
       loadLastMintedNFT();
     }
@@ -383,25 +383,25 @@ function updateUserMintCount() {
 
 async function loadLastMintedNFT() {
   if (!userAddress || !contractDetails) return;
-  
+
   try {
     setStatus('Loading your NFTs... 🔍', 'info');
-    
+
     const totalSupply = await readContract(wagmiConfig, {
       address: contractDetails.address,
       abi: contractDetails.abi,
       functionName: 'totalSupply'
     });
-    
+
     const total = Number(totalSupply);
     if (total === 0) {
       setStatus('No NFTs minted yet', 'info');
       return;
     }
-    
+
     const searchLimit = Math.min(50, total);
     let foundTokenId = null;
-    
+
     for (let i = total; i > total - searchLimit && i > 0; i--) {
       try {
         const owner = await readContract(wagmiConfig, {
@@ -410,7 +410,7 @@ async function loadLastMintedNFT() {
           functionName: 'ownerOf',
           args: [BigInt(i)]
         });
-        
+
         if (owner.toLowerCase() === userAddress.toLowerCase()) {
           foundTokenId = i;
           break;
@@ -419,16 +419,16 @@ async function loadLastMintedNFT() {
         console.log(`Token ${i} check failed:`, e.message);
       }
     }
-    
+
     if (foundTokenId) {
       lastMintedTokenId = foundTokenId;
       safeLocalStorage.setItem('lastMintedTokenId', foundTokenId.toString());
-      
+
       previewBtn.innerText = `Preview NFT #${foundTokenId}`;
       previewBtn.classList.remove('hidden');
-      
+
       setStatus(`Found your NFT #${foundTokenId}! 🎉`, 'success');
-      
+
       setTimeout(() => {
         previewNft(foundTokenId);
       }, 500);
@@ -443,15 +443,15 @@ async function loadLastMintedNFT() {
 
 function saveMintToHistory(tokenId, txHash) {
   const history = JSON.parse(safeLocalStorage.getItem('mintHistory') || '[]');
-  history.unshift({ 
-    tokenId, 
-    txHash, 
-    timestamp: Date.now(), 
-    address: userAddress 
+  history.unshift({
+    tokenId,
+    txHash,
+    timestamp: Date.now(),
+    address: userAddress
   });
-  
+
   if (history.length > 20) history.pop();
-  
+
   safeLocalStorage.setItem('mintHistory', JSON.stringify(history));
   updateUserMintCount();
 }
@@ -466,12 +466,12 @@ async function getTokenIdFromReceipt(receipt) {
         return false;
       }
     });
-    
+
     if (transferEvent && transferEvent.topics[3]) {
       const tokenId = BigInt(transferEvent.topics[3]);
       return Number(tokenId);
     }
-    
+
     const totalSupply = await readContract(wagmiConfig, {
       address: contractDetails.address,
       abi: contractDetails.abi,
@@ -489,25 +489,25 @@ async function getTokenIdFromReceipt(receipt) {
 // Show prediction result popup after airdrop
 function showPredictionResultPopup(verifyResult, airdropResult) {
   console.log('showPredictionResultPopup called with:', { verifyResult, airdropResult });
-  
+
   // Validate required data
   if (!verifyResult || !airdropResult) {
     console.error('Missing required data for popup:', { verifyResult, airdropResult });
     return;
   }
-  
+
   const isCorrect = verifyResult.correct || false;
   const priceChange = parseFloat(verifyResult.priceChange || 0);
   const multiplier = verifyResult.multiplier || 1;
   const airdropAmount = airdropResult.amount || '0';
-  
+
   const startPrice = parseFloat(verifyResult.startPrice) || 0;
   const endPrice = parseFloat(verifyResult.endPrice) || 0;
   const prediction = verifyResult.prediction || 'unknown';
   const priceChangePercent = verifyResult.priceChangePercent || '0';
-  
+
   console.log('Popup data parsed:', { isCorrect, priceChange, multiplier, airdropAmount, startPrice, endPrice, prediction, priceChangePercent });
-  
+
   const modal = document.createElement('div');
   modal.className = 'prediction-result-modal';
   modal.style.cssText = `
@@ -523,7 +523,7 @@ function showPredictionResultPopup(verifyResult, airdropResult) {
     z-index: 10000;
     animation: fadeIn 0.3s;
   `;
-  
+
   const content = document.createElement('div');
   content.style.cssText = `
     background: linear-gradient(135deg, ${isCorrect ? '#1e3a2f 0%, #0f1a0f 100%' : '#3a2e1e 0%, #1f1a0f 100%'});
@@ -538,13 +538,13 @@ function showPredictionResultPopup(verifyResult, airdropResult) {
     max-height: 90vh;
     overflow-y: auto;
   `;
-  
+
   // Check if there are any bonuses
   const hasLucky = airdropResult.luckyMultiplier && airdropResult.luckyMultiplier > 1;
   const hasRarity = airdropResult.rarityMultiplier && airdropResult.rarityMultiplier > 1;
   const hasBonuses = hasLucky || hasRarity || airdropResult.bonusMessages;
   const isSkipped = prediction === 'skipped' || !verifyResult.stats;
-  
+
   content.innerHTML = `
     <div style="font-size: 2rem; margin-bottom: 3px;">
       ${isSkipped ? '🎁' : (isCorrect ? '✅' : '🎲')}
@@ -645,12 +645,12 @@ function showPredictionResultPopup(verifyResult, airdropResult) {
       ${hasBonuses ? '🎉 Amazing! Cast It!' : (isCorrect ? '🎉 Awesome! Cast It!' : '👍 Got It! Cast It!')}
     </button>
   `;
-  
+
   modal.appendChild(content);
   document.body.appendChild(modal);
-  
+
   console.log('Popup created and added to DOM');
-  
+
   // Trigger confetti for correct predictions or bonuses
   if (isCorrect || hasBonuses) {
     setTimeout(() => {
@@ -658,13 +658,13 @@ function showPredictionResultPopup(verifyResult, airdropResult) {
         particleCount: hasBonuses ? 200 : 150,
         spread: hasBonuses ? 140 : 120,
         origin: { y: 0.6 },
-        colors: hasBonuses 
+        colors: hasBonuses
           ? ['#10b981', '#34d399', '#6ee7b7', '#fbbf24', '#f59e0b']
           : ['#10b981', '#34d399', '#6ee7b7', '#fbbf24']
       });
     }, 300);
   }
-  
+
   // Single button - Cast and close
   document.getElementById('castAndClosePredictionResult').onclick = async () => {
     // Cast to Farcaster with prediction result
@@ -677,12 +677,12 @@ function showPredictionResultPopup(verifyResult, airdropResult) {
         verifyResult
       );
     }
-    
+
     // Close modal with animation
     modal.style.animation = 'fadeOut 0.3s';
     setTimeout(() => modal.remove(), 300);
   };
-  
+
   // Click outside to close (without cast
   modal.onclick = (e) => {
     if (e.target === modal) {
@@ -698,7 +698,7 @@ async function showPredictionModal() {
     const modal = document.createElement('div');
     modal.className = 'prediction-modal';
     modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center; z-index: 9999;';
-    
+
     const content = document.createElement('div');
     content.className = 'prediction-content';
     content.innerHTML = `
@@ -762,28 +762,28 @@ async function showPredictionModal() {
         </div>
       </div>
     `;
-    
+
     modal.appendChild(content);
     document.body.appendChild(modal);
-    
+
     let currentPrice = null;
     let timestamp = null;
     let timerInterval = null;
-    
+
     // Fetch current price
     (async () => {
       try {
         const priceData = await fetchCeloPrice();
         currentPrice = priceData.price;
         timestamp = Date.now();
-        
+
         const priceElement = document.getElementById('currentPrice');
         priceElement.innerHTML = `$${currentPrice.toFixed(4)}`;
-        
+
         // Enable buttons
         document.getElementById('predictUp').disabled = false;
         document.getElementById('predictDown').disabled = false;
-        
+
         // Fetch user stats
         if (userAddress) {
           try {
@@ -799,28 +799,28 @@ async function showPredictionModal() {
             console.log('Could not fetch user stats:', e);
           }
         }
-        
+
       } catch (error) {
         console.error('Failed to fetch price:', error);
         document.getElementById('currentPrice').innerHTML = '<span style="color: #ef4444; font-size: 1rem;">Failed to load</span>';
         document.getElementById('skipPrediction').textContent = '❌ Close';
       }
     })();
-    
+
     // Cleanup function
     const cleanup = () => {
       if (timerInterval) clearInterval(timerInterval);
       modal.remove();
     };
-    
+
     // Handle prediction
     const handlePrediction = async (prediction) => {
       if (!currentPrice || !timestamp) return;
-      
+
       document.getElementById('predictUp').disabled = true;
       document.getElementById('predictDown').disabled = true;
       document.getElementById('skipPrediction').disabled = true;
-      
+
       try {
         // Store prediction
         const response = await fetch('/api/prediction', {
@@ -834,16 +834,16 @@ async function showPredictionModal() {
             timestamp
           })
         });
-        
+
         if (!response.ok) {
           const error = await response.json();
           throw new Error(error.message || 'Failed to store prediction');
         }
-        
+
         // Calculate remaining time
         const elapsedTime = Date.now() - timestamp;
         const remainingTime = Math.max(0, 60000 - elapsedTime);
-        
+
         // Close modal and proceed to mint immediately
         cleanup();
         resolve({
@@ -853,7 +853,7 @@ async function showPredictionModal() {
           startPrice: currentPrice,
           timeLeft: remainingTime
         });
-        
+
       } catch (error) {
         console.error('Prediction error:', error);
         setStatus('Prediction failed: ' + error.message, 'error');
@@ -861,7 +861,7 @@ async function showPredictionModal() {
         resolve({ skip: true });
       }
     };
-    
+
     // Event listeners
     document.getElementById('predictUp').onclick = () => handlePrediction('up');
     document.getElementById('predictDown').onclick = () => handlePrediction('down');
@@ -869,7 +869,7 @@ async function showPredictionModal() {
       cleanup();
       resolve({ skip: true });
     };
-    
+
     // Click outside to close (only on modal background, not content)
     modal.onclick = (e) => {
       if (e.target === modal) {
@@ -886,7 +886,7 @@ async function verifyPrediction(prediction, startPrice, timestamp, modal, cleanu
     // Fetch new price
     const priceData = await fetchCeloPrice();
     const newPrice = priceData.price;
-    
+
     // Verify prediction with backend
     const response = await fetch('/api/prediction', {
       method: 'POST',
@@ -898,14 +898,14 @@ async function verifyPrediction(prediction, startPrice, timestamp, modal, cleanu
         newPrice
       })
     });
-    
+
     const result = await response.json();
-    
+
     // Show result
     const content = modal.querySelector('.prediction-content');
     const isCorrect = result.correct;
     const priceChange = parseFloat(result.priceChange);
-    
+
     content.innerHTML = `
       <div class="prediction-result ${isCorrect ? 'result-correct' : 'result-wrong'}">
         <div class="result-icon">${isCorrect ? '✅' : '❌'}</div>
@@ -945,7 +945,7 @@ async function verifyPrediction(prediction, startPrice, timestamp, modal, cleanu
         ❌ Cancel & Start Over
       </button>
     `;
-    
+
     document.getElementById('continueBtn').onclick = () => {
       cleanup();
       resolve({
@@ -958,12 +958,12 @@ async function verifyPrediction(prediction, startPrice, timestamp, modal, cleanu
         endPrice: newPrice
       });
     };
-    
+
     document.getElementById('cancelPrediction').onclick = () => {
       cleanup();
       resolve({ skip: true });
     };
-    
+
   } catch (error) {
     console.error('Verification error:', error);
     setStatus('Prediction verification failed', 'error');
@@ -976,7 +976,7 @@ async function verifyPrediction(prediction, startPrice, timestamp, modal, cleanu
 async function claimAirdrop(tokenId, txHash, predictionMultiplier = 1) {
   try {
     setStatus('Calculating your airdrop bonus...', 'info');
-    
+
     const response = await fetch('/api/airdrop', {
       method: 'POST',
       headers: {
@@ -989,37 +989,37 @@ async function claimAirdrop(tokenId, txHash, predictionMultiplier = 1) {
         predictionMultiplier: predictionMultiplier
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Airdrop claim failed');
     }
-    
+
     if (data.success) {
       const amountReceived = data.amount || '0.01';
       lastAirdropAmount = amountReceived;
-      
+
       // Check if this was a bonus airdrop
       const isBonus = data.isBonus || (data.bonusMessages && data.bonusMessages.length > 0);
-      
+
       if (isBonus) {
         // SUPER BONUS CELEBRATION! 🎉
         setStatus(`💸 BONUS AIRDROP! ${amountReceived} CELO! 🎉`, 'success');
-        
+
         // Don't show separate bonus popup - it's merged with prediction result
         // showBonusBreakdown(data);
-        
+
         // Epic confetti for bonuses
         launchBonusConfetti(parseFloat(amountReceived));
-        
+
         // Play bonus sound (if you add sounds)
         if (typeof playSound === 'function') {
           playSound('bonus');
         }
       } else {
         setStatus(`Airdrop received! ${amountReceived} CELO sent to your wallet! 🎉`, 'success');
-        
+
         // Normal confetti
         confetti({
           particleCount: 150,
@@ -1028,7 +1028,7 @@ async function claimAirdrop(tokenId, txHash, predictionMultiplier = 1) {
           colors: ['#10b981', '#34d399', '#6ee7b7']
         });
       }
-      
+
       // Add airdrop link to transaction container
       if (data.txHash) {
         const airdropLink = document.createElement('a');
@@ -1036,23 +1036,23 @@ async function claimAirdrop(tokenId, txHash, predictionMultiplier = 1) {
         airdropLink.target = '_blank';
         airdropLink.rel = 'noopener noreferrer';
         airdropLink.className = 'tx-link';
-        airdropLink.textContent = isBonus 
-          ? `💎 View Bonus (${amountReceived} CELO)` 
+        airdropLink.textContent = isBonus
+          ? `💎 View Bonus (${amountReceived} CELO)`
           : `View Airdrop (${amountReceived} CELO)`;
-        airdropLink.style.background = isBonus 
-          ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' 
+        airdropLink.style.background = isBonus
+          ? 'linear-gradient(135deg, #fbbf24, #f59e0b)'
           : 'linear-gradient(135deg, #10b981, #059669)';
-        
+
         txLinksContainer.appendChild(airdropLink);
       }
-      
+
       return data;
     }
   } catch (error) {
     console.error('Airdrop claim error:', error);
-    
+
     const errorMsg = error.message || 'Airdrop claim failed';
-    
+
     if (errorMsg.includes('Rate limit')) {
       setStatus(errorMsg, 'warning');
     } else if (errorMsg.includes('already claimed')) {
@@ -1060,7 +1060,7 @@ async function claimAirdrop(tokenId, txHash, predictionMultiplier = 1) {
     } else {
       setStatus('Airdrop claim failed: ' + errorMsg, 'warning');
     }
-    
+
     return null;
   }
 }
@@ -1082,7 +1082,7 @@ function showBonusBreakdown(data) {
     z-index: 10000;
     animation: fadeIn 0.3s;
   `;
-  
+
   const content = document.createElement('div');
   content.style.cssText = `
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -1096,10 +1096,10 @@ function showBonusBreakdown(data) {
     max-height: 85vh;
     overflow-y: auto;
   `;
-  
+
   const bonusMessages = data.bonusMessages || [];
   const bonusesHTML = bonusMessages.map(msg => `<div class="bonus-item">✨ ${msg}</div>`).join('');
-  
+
   content.innerHTML = `
     <div style="text-align: center;">
       <div style="font-size: 3rem; margin-bottom: 8px;">💎</div>
@@ -1143,16 +1143,16 @@ function showBonusBreakdown(data) {
       </button>
     </div>
   `;
-  
+
   modal.appendChild(content);
   document.body.appendChild(modal);
-  
+
   // Close modal
   document.getElementById('closeBonusModal').onclick = () => {
     modal.style.animation = 'fadeOut 0.3s';
     setTimeout(() => modal.remove(), 300);
   };
-  
+
   // Click outside to close
   modal.onclick = (e) => {
     if (e.target === modal) {
@@ -1166,16 +1166,16 @@ function showBonusBreakdown(data) {
 function launchBonusConfetti(amount) {
   const duration = 5000;
   const end = Date.now() + duration;
-  
+
   // Determine confetti intensity based on amount
   const intensity = amount > 0.1 ? 'mega' : amount > 0.05 ? 'super' : 'normal';
-  
-  const colors = intensity === 'mega' 
+
+  const colors = intensity === 'mega'
     ? ['#fbbf24', '#f59e0b', '#ec4899', '#a855f7', '#10b981']
     : intensity === 'super'
-    ? ['#fbbf24', '#f59e0b', '#10b981', '#3b82f6']
-    : ['#10b981', '#34d399', '#6ee7b7'];
-  
+      ? ['#fbbf24', '#f59e0b', '#10b981', '#3b82f6']
+      : ['#10b981', '#34d399', '#6ee7b7'];
+
   const frame = () => {
     confetti({
       particleCount: intensity === 'mega' ? 15 : intensity === 'super' ? 10 : 5,
@@ -1184,7 +1184,7 @@ function launchBonusConfetti(amount) {
       origin: { x: 0, y: 0.6 },
       colors: colors
     });
-    
+
     confetti({
       particleCount: intensity === 'mega' ? 15 : intensity === 'super' ? 10 : 5,
       angle: 120,
@@ -1192,14 +1192,14 @@ function launchBonusConfetti(amount) {
       origin: { x: 1, y: 0.6 },
       colors: colors
     });
-    
+
     if (Date.now() < end) {
       requestAnimationFrame(frame);
     }
   };
-  
+
   frame();
-  
+
   // Final burst
   setTimeout(() => {
     confetti({
@@ -1348,11 +1348,11 @@ async function downloadSVGFile() {
     setStatus('No NFT data available for download', 'error');
     return;
   }
-  
+
   try {
     const svgData = currentNFTData.svg;
     const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    
+
     if (window.showSaveFilePicker) {
       try {
         const handle = await window.showSaveFilePicker({
@@ -1375,7 +1375,7 @@ async function downloadSVGFile() {
         console.log('File picker failed, using fallback:', e);
       }
     }
-    
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
@@ -1383,12 +1383,12 @@ async function downloadSVGFile() {
     a.download = `celo-nft-${lastMintedTokenId}.svg`;
     document.body.appendChild(a);
     a.click();
-    
+
     setTimeout(() => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 100);
-    
+
     setStatus('SVG downloaded!', 'success');
   } catch (e) {
     console.error('SVG download failed:', e);
@@ -1401,32 +1401,32 @@ async function downloadPNGFile() {
     setStatus('No NFT data available for download', 'error');
     return;
   }
-  
+
   const canvas = document.createElement('canvas');
   canvas.width = 400;
   canvas.height = 400;
   const ctx = canvas.getContext('2d');
-  
+
   const img = new Image();
   const svgBlob = new Blob([currentNFTData.svg], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(svgBlob);
-  
+
   try {
     setStatus('Generating PNG... ⏳', 'info');
-    
+
     await new Promise((resolve, reject) => {
       img.onload = async () => {
         try {
           ctx.fillStyle = '#000000';
           ctx.fillRect(0, 0, 400, 400);
           ctx.drawImage(img, 0, 0, 400, 400);
-          
+
           canvas.toBlob(async (blob) => {
             if (!blob) {
               reject(new Error('Failed to generate PNG blob'));
               return;
             }
-            
+
             if (window.showSaveFilePicker) {
               try {
                 const handle = await window.showSaveFilePicker({
@@ -1451,7 +1451,7 @@ async function downloadPNGFile() {
                 }
               }
             }
-            
+
             const downloadUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
@@ -1459,12 +1459,12 @@ async function downloadPNGFile() {
             a.download = `celo-nft-${lastMintedTokenId}.png`;
             document.body.appendChild(a);
             a.click();
-            
+
             setTimeout(() => {
               document.body.removeChild(a);
               URL.revokeObjectURL(downloadUrl);
             }, 100);
-            
+
             setStatus('PNG downloaded!', 'success');
             resolve();
           }, 'image/png', 1.0);
@@ -1472,12 +1472,12 @@ async function downloadPNGFile() {
           reject(e);
         }
       };
-      
+
       img.onerror = (e) => {
         console.error('Image load failed:', e);
         reject(new Error('Failed to load SVG image'));
       };
-      
+
       img.src = url;
     });
   } catch (e) {
@@ -1495,37 +1495,37 @@ async function copyImageToClipboard() {
     setStatus('No NFT data available', 'error');
     return;
   }
-  
+
   if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
     setStatus('Copy not supported in this browser', 'warning');
     return;
   }
-  
+
   const canvas = document.createElement('canvas');
   canvas.width = 400;
   canvas.height = 400;
   const ctx = canvas.getContext('2d');
-  
+
   const img = new Image();
   const svgBlob = new Blob([currentNFTData.svg], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(svgBlob);
-  
+
   try {
     setStatus('Copying to clipboard... ⏳', 'info');
-    
+
     await new Promise((resolve, reject) => {
       img.onload = async () => {
         try {
           ctx.fillStyle = '#000000';
           ctx.fillRect(0, 0, 400, 400);
           ctx.drawImage(img, 0, 0, 400, 400);
-          
+
           canvas.toBlob(async (blob) => {
             if (!blob) {
               reject(new Error('Failed to generate image'));
               return;
             }
-            
+
             try {
               await navigator.clipboard.write([
                 new ClipboardItem({ 'image/png': blob })
@@ -1541,11 +1541,11 @@ async function copyImageToClipboard() {
           reject(e);
         }
       };
-      
+
       img.onerror = () => {
         reject(new Error('Failed to load image'));
       };
-      
+
       img.src = url;
     });
   } catch (e) {
@@ -1644,12 +1644,12 @@ Join now 👇`;
       statusBox.className = 'status-box';
     }
   }, 5000);
-}function showGiftModal() {
+} function showGiftModal() {
   if (!lastMintedTokenId) {
     setStatus('No NFT to gift. Please mint first!', 'warning');
     return;
   }
-  
+
   const modal = document.createElement('div');
   modal.className = 'gift-modal';
   modal.innerHTML = `
@@ -1662,18 +1662,18 @@ Join now 👇`;
       <button id="sendGiftBtn" class="action-button" style="width: 100%; margin-top: 16px;">Send Gift</button>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   document.getElementById('sendGiftBtn').onclick = async () => {
     const recipient = document.getElementById('recipientAddress').value.trim();
     const message = document.getElementById('giftMessage').value.trim();
-    
+
     if (!recipient || !recipient.startsWith('0x') || recipient.length !== 42) {
       setStatus('Please enter a valid Celo address', 'error');
       return;
     }
-    
+
     await giftNFT(lastMintedTokenId, recipient, message);
     modal.remove();
   };
@@ -1682,23 +1682,23 @@ Join now 👇`;
 async function giftNFT(tokenId, recipient, message) {
   try {
     setStatus('Sending gift... 🎁', 'info');
-    
+
     const hash = await writeContract(wagmiConfig, {
       address: contractDetails.address,
       abi: contractDetails.abi,
       functionName: 'transferFrom',
       args: [userAddress, recipient, BigInt(tokenId)]
     });
-    
+
     setStatus('Confirming transfer...', 'info');
     const receipt = await waitForTransactionReceipt(wagmiConfig, { hash });
-    
+
     if (receipt.status === 'reverted') {
       throw new Error('Transfer was reverted.');
     }
-    
+
     setStatus(`✅ NFT #${tokenId} gifted successfully!`, 'success');
-    
+
     const gifts = JSON.parse(safeLocalStorage.getItem('giftHistory') || '[]');
     gifts.unshift({
       tokenId,
@@ -1708,12 +1708,12 @@ async function giftNFT(tokenId, recipient, message) {
       txHash: hash
     });
     safeLocalStorage.setItem('giftHistory', JSON.stringify(gifts));
-    
+
     const celoscanUrl = `https://celoscan.io/tx/${hash}`;
     setTimeout(() => {
       setStatus(`Gift sent! View transaction: ${celoscanUrl}`, 'success');
     }, 2000);
-    
+
     updateUserMintCount();
   } catch (e) {
     const errorMsg = getImprovedErrorMessage(e);
@@ -1729,19 +1729,19 @@ async function previewNft(tokenId, isNewMint = false) {
 
   statusBox.innerHTML = '';
   statusBox.className = 'status-box';
-  
+
   previewContainer.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 200px;"><span class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></span></div>';
   previewContainer.classList.remove('hidden');
-  
+
   previewBtn.disabled = true;
   previewBtn.innerHTML = '<span class="spinner"></span> Loading Preview…';
   previewContainer.classList.remove("sparkles", ...ALL_RARITY_CLASSES);
   nftActions.classList.add('hidden');
-  
+
   if (!isNewMint) {
     txLinksContainer.classList.add('hidden');
   }
-  
+
   const nftActionsRow2 = document.getElementById('nftActionsRow2');
   if (nftActionsRow2) nftActionsRow2.classList.add('hidden');
 
@@ -1750,7 +1750,7 @@ async function previewNft(tokenId, isNewMint = false) {
       address: contractAddress,
       abi: contractDetails.abi,
       functionName: 'tokenURI',
-      args: [BigInt(tokenId)] 
+      args: [BigInt(tokenId)]
     });
 
     const base64Json = tokenURI.split(',')[1];
@@ -1758,7 +1758,7 @@ async function previewNft(tokenId, isNewMint = false) {
 
     const jsonString = atob(decodeURIComponent(base64Json));
     const metadata = JSON.parse(jsonString);
-    
+
     const base64Svg = metadata.image.split(',')[1];
     if (!base64Svg) throw new Error("Invalid image data format.");
 
@@ -1773,40 +1773,40 @@ async function previewNft(tokenId, isNewMint = false) {
 
     previewContainer.innerHTML = safeSvg;
     adjustInjectedSvg(previewContainer);
-    
+
     let rarityText = "Common";
     let priceText = "N/A";
 
     if (metadata.attributes) {
       const rarityAttr = metadata.attributes.find(attr => attr.trait_type === 'Rarity');
       const priceAttr = metadata.attributes.find(attr => attr.trait_type === 'CELO Price Snapshot');
-      
+
       if (rarityAttr) rarityText = rarityAttr.value;
       if (priceAttr) priceText = priceAttr.value;
     }
-    
+
     previewContainer.classList.add("sparkles");
     const rarityClassLower = rarityText.toLowerCase();
     previewContainer.classList.add(rarityClassLower);
 
     const buttonLabel = `Preview NFT #${tokenId} (${rarityText} / ${priceText})`;
     previewBtn.innerText = buttonLabel;
-    
+
     nftActions.classList.remove('hidden');
     if (nftActionsRow2) nftActionsRow2.classList.remove('hidden');
-    
+
     if (isFarcasterEnvironment) {
       if (downloadSVG) downloadSVG.style.display = 'none';
       if (downloadGIF) downloadGIF.style.display = 'none';
     }
-    
+
     if (!isNewMint && contractAddress) {
       const celoscanTokenUrl = `https://celoscan.io/token/${contractAddress}?a=${tokenId}`;
 
       txLinksContainer.innerHTML = `
         <a href="${celoscanTokenUrl}" target="_blank" rel="noopener noreferrer">View on Celoscan</a>
       `;
-      
+
       const castBtnElement = document.createElement('button');
       castBtnElement.id = 'castBtn';
       castBtnElement.className = 'tx-link cast-link';
@@ -1816,12 +1816,12 @@ async function previewNft(tokenId, isNewMint = false) {
         await castToFarcaster(tokenId, rarityText, priceText, lastAirdropAmount, null);
       };
       txLinksContainer.appendChild(castBtnElement);
-      
+
       txLinksContainer.classList.remove('hidden');
     }
 
   } catch (e) {
-    setStatus("Failed to load NFT preview. Check console for details.", 'error'); 
+    setStatus("Failed to load NFT preview. Check console for details.", 'error');
     previewBtn.innerText = 'Preview NFT Error';
     console.error(`NFT Preview Error for token ID ${tokenId}:`, e);
     previewContainer.classList.add('hidden');
@@ -1836,7 +1836,7 @@ async function previewNft(tokenId, isNewMint = false) {
 function initTradingView() {
   if (tradingViewLoaded) return;
   tradingViewLoaded = true;
-  
+
   const script = document.createElement('script');
   script.src = 'https://s3.tradingview.com/tv.js';
   script.onload = () => {
@@ -1865,7 +1865,7 @@ if ('IntersectionObserver' in window) {
       observer.disconnect();
     }
   }, { threshold: 0.1 });
-  
+
   const chartContainer = document.querySelector('.tradingview-widget-container');
   if (chartContainer) {
     observer.observe(chartContainer);
@@ -1876,36 +1876,36 @@ if ('IntersectionObserver' in window) {
 
 // ===== AUTO-REGISTER FOR NOTIFICATIONS =====
 async function autoRegisterForNotifications() {
-    if (!isFarcasterEnvironment || !sdk?.context?.user?.fid) {
-        console.log('Not in Farcaster environment, skipping notification registration');
-        return;
-    }
+  if (!isFarcasterEnvironment || !sdk?.context?.user?.fid) {
+    console.log('Not in Farcaster environment, skipping notification registration');
+    return;
+  }
 
-    try {
-        const fid = sdk.context.user.fid;
-        const username = sdk.context.user.username || sdk.context.user.displayName || `User ${fid}`;
+  try {
+    const fid = sdk.context.user.fid;
+    const username = sdk.context.user.username || sdk.context.user.displayName || `User ${fid}`;
 
-        console.log(`🔔 Auto-registering user ${fid} (${username}) for notifications...`);
+    console.log(`🔔 Auto-registering user ${fid} (${username}) for notifications...`);
 
-        const response = await fetch('/api/notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'register',
-                fid: fid,
-                username: username
-            })
-        });
+    const response = await fetch('/api/notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'register',
+        fid: fid,
+        username: username
+      })
+    });
 
-        const data = await response.json();
+    const data = await response.json();
 
-        if (data.success) {
-            if (data.isNew) {
-                console.log('✅ Successfully registered for daily notifications');
+    if (data.success) {
+      if (data.isNew) {
+        console.log('✅ Successfully registered for daily notifications');
 
-                // Optional: Show a subtle success message
-                const tempMsg = document.createElement('div');
-                tempMsg.style.cssText = `
+        // Optional: Show a subtle success message
+        const tempMsg = document.createElement('div');
+        tempMsg.style.cssText = `
                     position: fixed;
                     top: 20px;
                     right: 20px;
@@ -1918,22 +1918,22 @@ async function autoRegisterForNotifications() {
                     z-index: 10000;
                     animation: slideIn 0.3s ease-out;
                 `;
-                tempMsg.textContent = '🔔 Daily reminders enabled!';
-                document.body.appendChild(tempMsg);
+        tempMsg.textContent = '🔔 Daily reminders enabled!';
+        document.body.appendChild(tempMsg);
 
-                setTimeout(() => {
-                    tempMsg.style.animation = 'slideOut 0.3s ease-out';
-                    setTimeout(() => tempMsg.remove(), 300);
-                }, 3000);
-            } else {
-                console.log('ℹ️ Already registered for notifications');
-            }
-        } else {
-            console.error('❌ Failed to register for notifications:', data.error);
-        }
-    } catch (e) {
-        console.error('💥 Notification registration error:', e);
+        setTimeout(() => {
+          tempMsg.style.animation = 'slideOut 0.3s ease-out';
+          setTimeout(() => tempMsg.remove(), 300);
+        }, 3000);
+      } else {
+        console.log('ℹ️ Already registered for notifications');
+      }
+    } else {
+      console.error('❌ Failed to register for notifications:', data.error);
     }
+  } catch (e) {
+    console.error('💥 Notification registration error:', e);
+  }
 }
 // Add CSS for notification animations
 const notificationStyles = document.createElement('style');
@@ -1968,21 +1968,21 @@ document.head.appendChild(notificationStyles);
   if (!window.ReactNativeWebView && window === window.parent) return;
   try {
     await sdk.actions.ready({ disableNativeGestures: true });
-    console.log('Farcaster SDK ready');
+    console.log('Farcaster SDK initialized successfully');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Add miniapp to user's app list
+    await sdk.actions.addMiniApp();
+
+
   } catch (e) {
     console.log('Farcaster SDK ready() failed:', e);
   }
 })();
 
-const wagmiAdapter = new WagmiAdapter({
-  networks: [celo],
-  projectId: PROJECT_ID,
-  ssr: false,
-  // injected() picks up window.ethereum provided by MiniPay (and MetaMask etc.)
-  connectors: [injected(), farcasterMiniApp()]
-});
-
-wagmiConfig = wagmiAdapter.wagmiConfig;
+// WagmiAdapter is created AFTER environment detection inside the async IIFE below.
+// This prevents injected() (window.ethereum, which Farcaster injects) from
+// stealing the INSTALLED badge from the farcasterMiniApp connector in AppKit.
 
 (async () => {
   try {
@@ -1994,6 +1994,96 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
 
     isFarcasterEnvironment = await isFarcasterEmbed();
     isMiniPayEnvironment = isFarcasterEnvironment ? false : isMiniPayEmbed();
+
+    // ✅ FIX: Create WagmiAdapter AFTER env detection.
+    // In Farcaster's WebView, window.ethereum is injected by the Farcaster client.
+    // Including injected() alongside farcasterMiniApp() makes injected() show as
+    // INSTALLED in the wallet modal, hiding the Farcaster connector's badge.
+    // Solution: Only include injected() in non-Farcaster environments.
+    const wagmiAdapter = new WagmiAdapter({
+      networks: [celo],
+      projectId: PROJECT_ID,
+      ssr: false,
+      connectors: isFarcasterEnvironment
+        ? [farcasterMiniApp()]              // Farcaster: only FC connector → shows INSTALLED
+        : [farcasterMiniApp(), injected()]  // Browser/MiniPay: include injected()
+    });
+    wagmiConfig = wagmiAdapter.wagmiConfig;
+
+    // watchAccount must be set up here since wagmiConfig is now created above
+    watchAccount(wagmiConfig, {
+      onChange(account) {
+        clearTimeout(accountChangeTimeout);
+        accountChangeTimeout = setTimeout(() => {
+          try {
+            if (account.address && account.isConnected) {
+              console.log('Account changed to:', account.address);
+              userAddress = account.address;
+              showAddress(userAddress);
+              setStatus('Wallet connected successfully!', 'success');
+              mintBtn.disabled = false;
+
+              updateSupply(true);
+              updateUserMintCount();
+
+              // Show tab navigation and update balance
+              const tabNav = document.getElementById('tabNavigation');
+              if (tabNav) tabNav.classList.remove('hidden');
+              updateWalletBalance();
+
+              // Load achievements in bottom section
+              setTimeout(() => loadAchievementsBottom(), 1000);
+
+              previewBtn.classList.add('hidden');
+              previewContainer.classList.add('hidden');
+              nftActions.classList.add('hidden');
+              const nftActionsRow2 = document.getElementById('nftActionsRow2');
+              if (nftActionsRow2) nftActionsRow2.classList.add('hidden');
+
+              lastMintedTokenId = null;
+              lastAirdropAmount = null;
+              sessionStorage.removeItem('lastMintedTokenId');
+
+            } else if (!account.isConnected && userAddress) {
+              console.log('Wallet disconnected');
+
+              // Clean up intervals to prevent memory leaks
+              stopRecentMintsPolling();
+              if (leaderboardInterval) {
+                clearInterval(leaderboardInterval);
+                leaderboardInterval = null;
+              }
+
+              userAddress = null;
+              userAddrBox.classList.add('hidden');
+              showConnectButton();
+              setStatus('Wallet disconnected. Please connect again.', 'warning');
+              mintBtn.disabled = true;
+
+              // Hide tabs and balance
+              const tabNav = document.getElementById('tabNavigation');
+              if (tabNav) tabNav.classList.add('hidden');
+              const balanceBox = document.getElementById('walletBalanceBox');
+              if (balanceBox) balanceBox.classList.add('hidden');
+
+              previewBtn.classList.add('hidden');
+              previewContainer.classList.add('hidden');
+              nftActions.classList.add('hidden');
+              const nftActionsRow2 = document.getElementById('nftActionsRow2');
+              if (nftActionsRow2) nftActionsRow2.classList.add('hidden');
+              if (totalMintedStat) totalMintedStat.textContent = '--';
+              if (yourMintsStat) yourMintsStat.textContent = '--';
+              if (remainingStat) remainingStat.textContent = '--';
+              sessionStorage.removeItem('lastMintedTokenId');
+              lastMintedTokenId = null;
+              lastAirdropAmount = null;
+            }
+          } catch (error) {
+            console.error('Account change error:', error);
+          }
+        }, 300);
+      },
+    });
 
     console.log('=== ENVIRONMENT DETECTION ===');
     console.log('Detected as Farcaster:', isFarcasterEnvironment);
@@ -2041,7 +2131,7 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
             try {
               await sdk.actions.addMiniApp();
               safeLocalStorage.setItem('hasPromptedAddApp', 'true');
-            } catch(e) {
+            } catch (e) {
               console.log('Add mini app prompt declined or failed:', e);
             }
           }
@@ -2115,28 +2205,28 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
       } catch {
         response = await fetch('/contract.json');
       }
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       contractDetails = await response.json();
       contractAddress = contractDetails.address;
       console.log('Contract loaded:', contractAddress);
-    } catch (e) { 
-      setStatus("Missing contract details.", 'error'); 
+    } catch (e) {
+      setStatus("Missing contract details.", 'error');
       console.error('Contract load error:', e);
-      
+
       const retryBtn = document.createElement('button');
       retryBtn.className = 'action-button';
       retryBtn.style.cssText = 'background: linear-gradient(90deg, #f59e0b, #f97316); padding: 0.8rem 1.5rem; font-size: 1rem; margin-top: 12px;';
       retryBtn.innerText = '🔄 Retry Load';
       retryBtn.onclick = () => window.location.reload();
-      
+
       statusBox.appendChild(document.createElement('br'));
       statusBox.appendChild(retryBtn);
-      
-      mintBtn.disabled = true; 
+
+      mintBtn.disabled = true;
       return;
     }
 
@@ -2154,18 +2244,18 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
       mintBtn.title = "Switch to Celo Mainnet to mint.";
       return;
     } else {
-      mintBtn.title = ""; 
+      mintBtn.title = "";
     }
-    
+
     try {
       const price = await readContract(wagmiConfig, {
         address: contractDetails.address,
         abi: contractDetails.abi,
         functionName: 'mintPrice'
       });
-      
+
       mintPriceWei = BigInt(price);
-      
+
       if (mintPriceWei > 0n) {
         const celoPrice = Number(mintPriceWei) / 1e18;
         mintBtn.innerText = `MINT (${celoPrice.toFixed(4)} CELO)`;
@@ -2195,12 +2285,12 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
     if (connected) {
       await updateSupply(true);
       updateUserMintCount();
-      
+
       // Show tabs and balance on initial connection
       const tabNav = document.getElementById('tabNavigation');
       if (tabNav) tabNav.classList.remove('hidden');
       updateWalletBalance();
-      
+
       // Load achievements in bottom section
       setTimeout(() => loadAchievementsBottom(), 1500);
     }
@@ -2210,79 +2300,7 @@ wagmiConfig = wagmiAdapter.wagmiConfig;
   }
 })();
 
-watchAccount(wagmiConfig, {
-  onChange(account) {
-    clearTimeout(accountChangeTimeout);
-    accountChangeTimeout = setTimeout(() => {
-      try {
-        if (account.address && account.isConnected) {
-          console.log('Account changed to:', account.address);
-          userAddress = account.address;
-          showAddress(userAddress);
-          setStatus('Wallet connected successfully!', 'success');
-          mintBtn.disabled = false;
-          
-          updateSupply(true);
-          updateUserMintCount();
-          
-          // Show tab navigation and update balance
-          const tabNav = document.getElementById('tabNavigation');
-          if (tabNav) tabNav.classList.remove('hidden');
-          updateWalletBalance();
-          
-          // Load achievements in bottom section
-          setTimeout(() => loadAchievementsBottom(), 1000);
-          
-          previewBtn.classList.add('hidden');
-          previewContainer.classList.add('hidden');
-          nftActions.classList.add('hidden');
-          const nftActionsRow2 = document.getElementById('nftActionsRow2');
-          if (nftActionsRow2) nftActionsRow2.classList.add('hidden');
-          
-          lastMintedTokenId = null;
-          lastAirdropAmount = null;
-          sessionStorage.removeItem('lastMintedTokenId');
-
-        } else if (!account.isConnected && userAddress) {
-          console.log('Wallet disconnected');
-          
-          // Clean up intervals to prevent memory leaks
-          stopRecentMintsPolling();
-          if (leaderboardInterval) {
-            clearInterval(leaderboardInterval);
-            leaderboardInterval = null;
-          }
-          
-          userAddress = null;
-          userAddrBox.classList.add('hidden');
-          showConnectButton();
-          setStatus('Wallet disconnected. Please connect again.', 'warning');
-          mintBtn.disabled = true;
-          
-          // Hide tabs and balance
-          const tabNav = document.getElementById('tabNavigation');
-          if (tabNav) tabNav.classList.add('hidden');
-          const balanceBox = document.getElementById('walletBalanceBox');
-          if (balanceBox) balanceBox.classList.add('hidden');
-          
-          previewBtn.classList.add('hidden');
-          previewContainer.classList.add('hidden');
-          nftActions.classList.add('hidden');
-          const nftActionsRow2 = document.getElementById('nftActionsRow2');
-          if (nftActionsRow2) nftActionsRow2.classList.add('hidden');
-          if (totalMintedStat) totalMintedStat.textContent = '--';
-          if (yourMintsStat) yourMintsStat.textContent = '--';
-          if (remainingStat) remainingStat.textContent = '--';
-          sessionStorage.removeItem('lastMintedTokenId');
-          lastMintedTokenId = null;
-          lastAirdropAmount = null;
-        }
-      } catch (error) {
-        console.error('Account change error:', error);
-      }
-    }, 300);
-  },
-});
+// watchAccount has been moved inside the async IIFE above (after wagmiConfig is created).
 
 connectBtn.addEventListener('click', async () => {
   try {
@@ -2333,7 +2351,7 @@ mintBtn.addEventListener('click', async () => {
       setStatus("This NFT drop is sold out.", "warning");
       return;
     }
-    
+
     const currentAccount = getAccount(wagmiConfig);
     if (currentAccount.chainId !== celo.id) {
       setStatus("⚠️ Please switch to Celo Mainnet", "error");
@@ -2342,18 +2360,18 @@ mintBtn.addEventListener('click', async () => {
       }
       return;
     }
-    
+
     // 🎯 STEP 1: SHOW PREDICTION MODAL
     setStatus('Ready to predict? 📈', 'info');
     const predictionResult = await showPredictionModal();
-    
+
     console.log('Prediction result:', predictionResult);
 
     if (predictionResult.cancelled) {
       setStatus('Mint cancelled.', 'info');
       return;
     }
-    
+
     statusBox.innerHTML = '';
     statusBox.className = 'status-box';
 
@@ -2380,38 +2398,38 @@ mintBtn.addEventListener('click', async () => {
       abi,
       functionName: 'mint',
       args: [priceForContract],
-      value: mintPriceWei 
+      value: mintPriceWei
     });
-    
+
     setStatus("Confirming transaction...", "info");
-    const receipt = await waitForTransactionReceipt(wagmiConfig, { hash, timeout: 30_000});
+    const receipt = await waitForTransactionReceipt(wagmiConfig, { hash, timeout: 30_000 });
 
     if (receipt.status === 'reverted') {
       throw new Error('Transaction was reverted.');
     }
 
     const actualTokenId = await getTokenIdFromReceipt(receipt);
-    
+
     if (!actualTokenId) {
       throw new Error('Failed to get token ID from receipt');
     }
 
     safeLocalStorage.setItem('lastMintedTokenId', actualTokenId.toString());
-    
+
     celebrateMint();
-    
+
     setStatus("🎉 Mint Successful!", "success");
-    
+
     const priceText = (price).toFixed(4);
     lastMintedInfo = { tokenId: actualTokenId, txHash: hash, price: priceText, rarity: null };
-    
+
     if (contractAddress) {
       const celoscanTokenUrl = `https://celoscan.io/token/${contractAddress}?a=${actualTokenId}`;
 
       txLinksContainer.innerHTML = `
         <a href="${celoscanTokenUrl}" target="_blank" rel="noopener noreferrer">View on Celoscan</a>
       `;
-      
+
       const castBtnElement = document.createElement('button');
       castBtnElement.id = 'castBtn';
       castBtnElement.className = 'tx-link cast-link';
@@ -2419,8 +2437,8 @@ mintBtn.addEventListener('click', async () => {
       castBtnElement.onclick = async () => {
         if (lastMintedInfo.tokenId) {
           await castToFarcaster(
-            lastMintedInfo.tokenId, 
-            lastMintedInfo.rarity || 'Common', 
+            lastMintedInfo.tokenId,
+            lastMintedInfo.rarity || 'Common',
             lastMintedInfo.price,
             lastAirdropAmount, // Include airdrop amount
             null // No prediction result in this context
@@ -2428,7 +2446,7 @@ mintBtn.addEventListener('click', async () => {
         }
       };
       txLinksContainer.appendChild(castBtnElement);
-      
+
       txLinksContainer.classList.remove('hidden');
     }
 
@@ -2439,10 +2457,10 @@ mintBtn.addEventListener('click', async () => {
     previewBtn.classList.remove('hidden');
     previewBtn.innerText = `Preview NFT #${actualTokenId}`;
     await previewNft(lastMintedTokenId, true);
-    
+
     // Update wallet balance after mint
     updateWalletBalance();
-    
+
     if (currentNFTData && currentNFTData.metadata) {
       const rarityAttr = currentNFTData.metadata.attributes?.find(attr => attr.trait_type === 'Rarity');
       if (rarityAttr) {
@@ -2455,9 +2473,9 @@ mintBtn.addEventListener('click', async () => {
       // User skipped prediction - send standard airdrop immediately
       setTimeout(async () => {
         const airdropResult = await claimAirdrop(actualTokenId, hash, 1);
-        
+
         console.log('Skip prediction - Airdrop result:', airdropResult);
-        
+
         // Show bonus popup if user got lucky/rarity bonuses
         if (airdropResult && (airdropResult.luckyMultiplier > 1 || airdropResult.rarityMultiplier > 1 || airdropResult.bonusMessages)) {
           setTimeout(() => {
@@ -2473,7 +2491,7 @@ mintBtn.addEventListener('click', async () => {
               multiplier: 1,
               stats: null
             };
-            
+
             console.log('Showing bonus popup for skip user');
             showPredictionResultPopup(fakeVerifyResult, airdropResult);
           }, 2000);
@@ -2483,15 +2501,15 @@ mintBtn.addEventListener('click', async () => {
       // User made a prediction - wait for verification
       const remainingSeconds = Math.ceil(predictionResult.timeLeft / 1000);
       setStatus(`⏳ Waiting for price verification... (${remainingSeconds}s remaining)`, 'info');
-      
+
       // Fix race condition: ensure minimum delay of 1 second
       const safeDelay = Math.max(predictionResult.timeLeft || 0, 1000);
-      
+
       // Schedule airdrop after remaining time
       setTimeout(async () => {
         try {
           setStatus('🔍 Verifying prediction result...', 'info');
-          
+
           // Fetch current price for verification
           const priceData = await fetchCeloPrice();
           console.log('Current price for verification:', priceData.price);
@@ -2500,10 +2518,10 @@ mintBtn.addEventListener('click', async () => {
             timestamp: predictionResult.timestamp,
             newPrice: priceData.price
           });
-          
+
           let verifyResult = null;
           let useClientSideVerification = false;
-          
+
           // Try server-side verification first
           try {
             const verifyResponse = await fetch('/api/prediction', {
@@ -2516,9 +2534,9 @@ mintBtn.addEventListener('click', async () => {
                 newPrice: priceData.price
               })
             });
-            
+
             console.log('Verify response status:', verifyResponse.status);
-            
+
             if (!verifyResponse.ok) {
               const errorData = await verifyResponse.json();
               console.error('Verification API error:', errorData);
@@ -2526,7 +2544,7 @@ mintBtn.addEventListener('click', async () => {
               useClientSideVerification = true;
             } else {
               verifyResult = await verifyResponse.json();
-              
+
               // Ensure all required fields exist
               if (!verifyResult.success) {
                 console.log('⚠️ API returned unsuccessful, using client-side verification');
@@ -2538,7 +2556,7 @@ mintBtn.addEventListener('click', async () => {
             console.log('⚠️ API error, using client-side verification');
             useClientSideVerification = true;
           }
-          
+
           let userStats = null;
           try {
             const statsResponse = await fetch(`/api/prediction?userAddress=${userAddress}`);
@@ -2549,7 +2567,7 @@ mintBtn.addEventListener('click', async () => {
           } catch (statsError) {
             console.error('Error fetching user stats:', statsError);
           }
-          
+
           // Fallback to client-side verification
           if (useClientSideVerification) {
             const priceChange = priceData.price - predictionResult.startPrice;
@@ -2557,7 +2575,7 @@ mintBtn.addEventListener('click', async () => {
             const actuallyWentUp = priceChange > 0;
             const correct = predictedUp === actuallyWentUp;
             const multiplier = correct ? 2 : 0.5;
-            
+
             console.log('Client-side verification:', {
               startPrice: predictionResult.startPrice,
               endPrice: priceData.price,
@@ -2567,7 +2585,7 @@ mintBtn.addEventListener('click', async () => {
               correct,
               multiplier
             });
-            
+
             verifyResult = {
               success: true,
               correct,
@@ -2594,28 +2612,28 @@ mintBtn.addEventListener('click', async () => {
               winRate: 0
             };
           }
-          
+
           const multiplier = verifyResult.multiplier || 1;
-          
+
           console.log('Prediction verification result:', verifyResult);
-          
+
           if (verifyResult.correct) {
             setStatus('🎯 Correct prediction! Claiming 2x airdrop...', 'success');
           } else {
             setStatus('🎲 Wrong prediction. Claiming 0.5x consolation airdrop...', 'info');
           }
-          
+
           // Claim airdrop with verified multiplier
           const airdropResult = await claimAirdrop(actualTokenId, hash, multiplier);
-          
+
           console.log('Airdrop result:', airdropResult);
-          
+
           // Add validation before showing popup
           if (!verifyResult || !airdropResult) {
             console.error('Missing required data for popup:', { verifyResult, airdropResult });
             return; // Early exit
           }
-          
+
           // Show prediction result popup after airdrop is sent
           if (airdropResult && verifyResult) {
             console.log('Showing prediction result popup...');
@@ -2625,7 +2643,7 @@ mintBtn.addEventListener('click', async () => {
           } else {
             console.log('Popup not shown - missing data:', { airdropResult, verifyResult });
           }
-          
+
         } catch (error) {
           console.error('Prediction verification failed:', error);
           // Fallback to standard airdrop if verification fails
@@ -2639,18 +2657,18 @@ mintBtn.addEventListener('click', async () => {
     const errorMsg = getImprovedErrorMessage(e);
     setStatus(errorMsg, "error");
     console.error('Mint Error:', e);
-    
+
     if (!errorMsg.includes('rejected') && !errorMsg.includes('already minted')) {
       const retryBtn = document.createElement('button');
       retryBtn.className = 'action-button';
       retryBtn.style.cssText = 'background: linear-gradient(90deg, #f59e0b, #f97316); padding: 0.6rem 1.2rem; font-size: 0.9rem; margin-top: 12px;';
       retryBtn.innerHTML = '🔄 Retry Mint';
       retryBtn.onclick = () => mintBtn.click();
-      
+
       statusBox.appendChild(document.createElement('br'));
       statusBox.appendChild(retryBtn);
     }
-    
+
     previewBtn.classList.add('hidden');
     previewContainer.classList.add('hidden');
     previewContainer.classList.remove('sparkles', ...ALL_RARITY_CLASSES);
@@ -2705,26 +2723,26 @@ async function fetchRecentMints(limit = 5) {
       console.log('Contract details or wagmi config not ready');
       return [];
     }
-    
+
     const totalSupply = await readContract(wagmiConfig, {
       address: contractDetails.address,
       abi: contractDetails.abi,
       functionName: 'totalSupply'
     });
-    
+
     const total = Number(totalSupply);
     if (total === 0) return [];
-    
+
     const start = Math.max(1, total - limit + 1);
     const mints = [];
-    
+
     // Batch all requests together for better performance
     const tokenIds = [];
     for (let i = total; i >= start; i--) {
       tokenIds.push(i);
     }
-    
-    const promises = tokenIds.map(tokenId => 
+
+    const promises = tokenIds.map(tokenId =>
       Promise.all([
         readContract(wagmiConfig, {
           address: contractDetails.address,
@@ -2747,12 +2765,12 @@ async function fetchRecentMints(limit = 5) {
         return null;
       })
     );
-    
+
     const results = await Promise.all(promises);
-    
+
     const rarityLabels = ['Common', 'Rare', 'Legendary', 'Mythic'];
     const rarityColors = ['#9ca3af', '#3b82f6', '#f59e0b', '#ec4899'];
-    
+
     results.forEach(result => {
       if (result) {
         const rarity = Number(result.traits[1]);
@@ -2766,7 +2784,7 @@ async function fetchRecentMints(limit = 5) {
         });
       }
     });
-    
+
     return mints;
   } catch (e) {
     console.error('Failed to fetch recent mints:', e);
@@ -2777,7 +2795,7 @@ async function fetchRecentMints(limit = 5) {
 function renderRecentMints(mints) {
   const container = document.getElementById('recentMintsContainer');
   if (!container) return;
-  
+
   if (mints.length === 0) {
     if (!contractDetails) {
       container.innerHTML = '<div class="empty-state">Loading... ⏳</div>';
@@ -2786,13 +2804,13 @@ function renderRecentMints(mints) {
     }
     return;
   }
-  
+
   const now = Date.now();
-  
+
   container.innerHTML = mints.map(mint => {
     const timeAgo = getTimeAgo(now - mint.timestamp);
     const isYours = userAddress && mint.owner.toLowerCase() === userAddress.toLowerCase();
-    
+
     return `
       <div class="mint-item ${isYours ? 'your-mint' : ''}" style="animation: slideIn 0.3s ease-out;">
         <div class="mint-info">
@@ -2823,7 +2841,7 @@ function getTimeAgo(ms) {
 
 async function startRecentMintsPolling() {
   if (recentMintsInterval) return;
-  
+
   const updateFeed = async () => {
     if (!contractDetails || !wagmiConfig) {
       console.log('Waiting for contract initialization...');
@@ -2832,7 +2850,7 @@ async function startRecentMintsPolling() {
     const mints = await fetchRecentMints(5);
     renderRecentMints(mints);
   };
-  
+
   // Initial load with delay to ensure contract is ready
   setTimeout(updateFeed, 1000);
   recentMintsInterval = setInterval(updateFeed, 15000); // Update every 15s
@@ -2871,14 +2889,14 @@ async function fetchLeaderboard() {
       console.log('Using cached leaderboard data');
       return leaderboardCache;
     }
-   
+
     if (!contractDetails || !wagmiConfig) {
       console.log('Contract details or wagmi config not ready for leaderboard');
       return [];
     }
-   
+
     console.log('Fetching leaderboard data...');
-   
+
     // ✅ TRY BITQUERY FIRST (if configured) - Most reliable
     if (process.env.BITQUERY_API_KEY) {
       try {
@@ -2888,16 +2906,16 @@ async function fetchLeaderboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contractAddress: contractDetails.address })
         });
-        
+
         if (bitqueryResponse.ok) {
           const bitqueryData = await bitqueryResponse.json();
-          
+
           if (bitqueryData.success && bitqueryData.transfers && bitqueryData.transfers.length > 0) {
             console.log(`✅ Bitquery returned ${bitqueryData.transfers.length} transfers`);
-            
+
             // Process Bitquery transfers
             const tokenTransferHistory = new Map();
-            
+
             bitqueryData.transfers.forEach(transfer => {
               const tokenId = transfer.tokenId;
               if (!tokenTransferHistory.has(tokenId)) {
@@ -2909,11 +2927,11 @@ async function fetchLeaderboard() {
                 blockNumber: parseInt(transfer.block.height)
               });
             });
-            
+
             // Determine current owners
             const currentOwners = new Map();
             const zeroAddress = '0x0000000000000000000000000000000000000000';
-            
+
             for (const [tokenId, history] of tokenTransferHistory.entries()) {
               history.sort((a, b) => a.blockNumber - b.blockNumber);
               const lastTransfer = history[history.length - 1];
@@ -2921,21 +2939,21 @@ async function fetchLeaderboard() {
                 currentOwners.set(tokenId, lastTransfer.to);
               }
             }
-            
+
             // Build holder map
             const holderMap = new Map();
             for (const [tokenId, owner] of currentOwners.entries()) {
               holderMap.set(owner, (holderMap.get(owner) || 0) + 1);
             }
-            
+
             console.log(`Bitquery: Found ${holderMap.size} unique holders`);
             console.log(`Bitquery: Tracked ${currentOwners.size} unique tokens`);
-            
+
             // Get top holders
             const topHolders = Array.from(holderMap.entries())
               .sort((a, b) => b[1] - a[1])
               .slice(0, 15);
-            
+
             // Fetch rarities
             const holderData = await Promise.all(
               topHolders.map(async ([address, count]) => {
@@ -2948,7 +2966,7 @@ async function fetchLeaderboard() {
                 };
               })
             );
-            
+
             const leaderboard = holderData
               .filter(h => h.count > 0)
               .sort((a, b) => {
@@ -2957,10 +2975,10 @@ async function fetchLeaderboard() {
                 return b.rarities.legendary - a.rarities.legendary;
               })
               .slice(0, 10);
-            
+
             leaderboardCache = leaderboard;
             leaderboardLastFetch = now;
-            
+
             console.log(`✅ Leaderboard from Bitquery: ${leaderboard.length} collectors`);
             return leaderboard;
           }
@@ -2969,38 +2987,38 @@ async function fetchLeaderboard() {
         console.warn('Bitquery attempt failed:', e.message);
       }
     }
-    
+
     // ✅ METHOD 1: Try tokennfttx (NFT Transfer events) - Etherscan V2 with PAGINATION
     try {
       console.log('Trying tokennfttx (NFT transfers) endpoint with pagination...');
-      
+
       // Fetch all transfers with pagination
       const allTransfers = [];
       const pageSize = 1000; // Reduce from 10000 to 1000 for better reliability
       let page = 1;
       let hasMorePages = true;
       const maxPages = 50; // Allow up to 50 pages = 50k transfers
-      
+
       while (hasMorePages && page <= maxPages) {
         const transferUrl = `/api/celoscan?module=account&action=tokennfttx&contractaddress=${contractDetails.address}&page=${page}&offset=${pageSize}&sort=asc`;
-        
+
         console.log(`📄 Fetching page ${page}/${maxPages}...`);
-        
+
         try {
           const response = await fetch(transferUrl);
-          
+
           if (!response.ok) {
             console.error(`❌ HTTP ${response.status} on page ${page}`);
             break;
           }
-          
+
           const data = await response.json();
-          
+
           // Check for valid response
           if (data.status === '1' && data.result && Array.isArray(data.result) && data.result.length > 0) {
             console.log(`✅ Page ${page} returned ${data.result.length} transfers`);
             allTransfers.push(...data.result);
-            
+
             // Check if this is the last page
             if (data.result.length < pageSize) {
               console.log(`✅ Reached last page (partial results: ${data.result.length})`);
@@ -3022,20 +3040,20 @@ async function fetchLeaderboard() {
           console.error(`❌ Fetch error on page ${page}:`, fetchError.message);
           break;
         }
-        
+
         // Safety: avoid infinite loops
         if (page > maxPages) {
           console.log(`⚠️ Reached maximum pages (${maxPages})`);
           break;
         }
       }
-      
+
       console.log(`✅ Total transfers fetched: ${allTransfers.length}`);
-     
+
       if (allTransfers.length > 0) {
         console.log('Sample transfer:', allTransfers[0]);
         console.log(`📊 Processing ${allTransfers.length} transfers for ${contractDetails.address}`);
-       
+
         // ✅ FIX: Use allTransfers instead of data.result
         // Process transfers in chronological order (oldest first)
         const transfers = [...allTransfers].sort((a, b) => {
@@ -3043,16 +3061,16 @@ async function fetchLeaderboard() {
           if (blockDiff !== 0) return blockDiff;
           return parseInt(a.timeStamp) - parseInt(b.timeStamp);
         });
-        
+
         // First pass: Build the complete transfer history for each token
         const tokenTransferHistory = new Map(); // tokenId -> array of transfers
-        
+
         transfers.forEach(tx => {
           // Normalize tokenID - might be string or number
           const tokenId = String(tx.tokenID);
           const from = tx.from.toLowerCase();
           const to = tx.to.toLowerCase();
-          
+
           if (!tokenTransferHistory.has(tokenId)) {
             tokenTransferHistory.set(tokenId, []);
           }
@@ -3063,11 +3081,11 @@ async function fetchLeaderboard() {
             timeStamp: parseInt(tx.timeStamp) || 0
           });
         });
-        
+
         // Second pass: Determine current owner of each token
         const currentOwners = new Map(); // tokenId -> current owner address
         const zeroAddress = '0x0000000000000000000000000000000000000000';
-        
+
         for (const [tokenId, history] of tokenTransferHistory.entries()) {
           // Sort by block number and timestamp to ensure correct order
           history.sort((a, b) => {
@@ -3076,26 +3094,26 @@ async function fetchLeaderboard() {
             }
             return a.timeStamp - b.timeStamp;
           });
-          
+
           // The last transfer's "to" address is the current owner
           const lastTransfer = history[history.length - 1];
-          
+
           if (lastTransfer.to !== zeroAddress) {
             currentOwners.set(tokenId, lastTransfer.to);
           }
         }
-        
+
         // Third pass: Build holder map from current ownership state
         const holderMap = new Map();
-        
+
         for (const [tokenId, owner] of currentOwners.entries()) {
           holderMap.set(owner, (holderMap.get(owner) || 0) + 1);
         }
-       
+
         console.log(`Processed ${transfers.length} transfers`);
         console.log(`Found ${tokenTransferHistory.size} unique tokens`);
         console.log(`Found ${holderMap.size} unique current holders`);
-        
+
         // Debug: Check for duplicate addresses or issues
         const allAddresses = new Set();
         for (const tx of transfers) {
@@ -3105,14 +3123,14 @@ async function fetchLeaderboard() {
           }
         }
         console.log(`Total unique addresses in transfers: ${allAddresses.size}`);
-        
+
         // Debug: Show distribution
         const holderCounts = Array.from(holderMap.values());
         const totalNFTs = holderCounts.reduce((sum, count) => sum + count, 0);
         console.log(`📊 Total NFTs tracked: ${totalNFTs}`);
         console.log(`📊 Unique tokens: ${currentOwners.size}`);
         console.log(`📊 Unique holders: ${holderMap.size}`);
-        
+
         // Verify against blockchain total supply
         try {
           const totalSupply = await readContract(wagmiConfig, {
@@ -3122,12 +3140,12 @@ async function fetchLeaderboard() {
           });
           const onChainTotal = Number(totalSupply);
           console.log(`🔗 On-chain total supply: ${onChainTotal}`);
-          
+
           const missingNFTs = onChainTotal - totalNFTs;
-          
+
           if (missingNFTs > 0) {
             console.warn(`⚠️ Missing ${missingNFTs} NFTs from transfers! Using blockchain fallback...`);
-            
+
             // If we're missing significant data (more than 50 NFTs or >5%), use blockchain scan
             const missingPercentage = (missingNFTs / onChainTotal) * 100;
             if (missingNFTs > 50 || missingPercentage > 5) {
@@ -3144,28 +3162,28 @@ async function fetchLeaderboard() {
           console.log('⚠️ Could not verify total supply:', e.message);
           // Continue with what we have
         }
-        
-        console.log(`🏆 Sample holders:`, 
+
+        console.log(`🏆 Sample holders:`,
           Array.from(holderMap.entries())
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
             .map(([addr, count]) => `${addr.slice(0, 8)}...: ${count} NFTs`)
         );
-       
+
         // Only proceed with API data if it's reasonably complete
         // This check happens after verification above
         const shouldProceed = holderMap.size > 0 && currentOwners.size > 0;
-        
+
         if (!shouldProceed) {
           console.log('⚠️ Insufficient data from API, falling back to blockchain scan...');
           return await fetchLeaderboardFromBlockchain();
         }
-        
+
         // Get top holders
         const topHolders = Array.from(holderMap.entries())
           .sort((a, b) => b[1] - a[1])
           .slice(0, 15);
-       
+
         // Fetch rarity data for each holder
         const holderData = await Promise.all(
           topHolders.map(async ([address, count]) => {
@@ -3176,9 +3194,9 @@ async function fetchLeaderboard() {
                 ownedTokens.set(tokenId, owner);
               }
             }
-            
+
             const rarities = await fetchHolderRarities(address, count, ownedTokens);
-           
+
             return {
               address,
               shortAddress: `${address.slice(0, 6)}...${address.slice(-4)}`,
@@ -3187,7 +3205,7 @@ async function fetchLeaderboard() {
             };
           })
         );
-       
+
         // Final sort with rarity tiebreakers
         const leaderboard = holderData
           .filter(h => h.count > 0)
@@ -3197,10 +3215,10 @@ async function fetchLeaderboard() {
             return b.rarities.legendary - a.rarities.legendary;
           })
           .slice(0, 10);
-       
+
         leaderboardCache = leaderboard;
         leaderboardLastFetch = now;
-       
+
         console.log(`✅ Leaderboard updated: ${leaderboard.length} collectors`);
         return leaderboard;
       }
@@ -3208,11 +3226,11 @@ async function fetchLeaderboard() {
       console.warn('❌ tokennfttx failed:', e.message);
       console.error('Full error:', e);
     }
-   
+
     // ✅ METHOD 2: Fallback to complete blockchain scan
     console.log('📡 Falling back to complete blockchain scan for accuracy...');
     return await fetchLeaderboardFromBlockchain();
-   
+
   } catch (e) {
     console.error('Leaderboard fetch error:', e);
     return [];
@@ -3223,36 +3241,36 @@ async function fetchLeaderboard() {
 async function fetchLeaderboardFromBlockchain() {
   try {
     if (!contractDetails || !wagmiConfig) return [];
-    
+
     const totalSupply = await readContract(wagmiConfig, {
       address: contractDetails.address,
       abi: contractDetails.abi,
       functionName: 'totalSupply'
     });
-    
+
     const total = Number(totalSupply);
     if (total === 0) return [];
-    
+
     console.log(`🔍 Scanning ${total} tokens from blockchain...`);
-    
+
     const holderMap = new Map();
     const rarityMap = new Map();
-    
+
     // Optimize chunk size based on total
     const chunkSize = total > 500 ? 50 : 20; // Larger chunks for big collections
     const totalChunks = Math.ceil(total / chunkSize);
-    
+
     console.log(`📦 Processing in ${totalChunks} chunks of ${chunkSize} tokens each...`);
-    
+
     for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
       const start = chunkIndex * chunkSize + 1;
       const end = Math.min((chunkIndex + 1) * chunkSize, total);
-      
+
       const tokenIds = [];
       for (let i = start; i <= end; i++) {
         tokenIds.push(i);
       }
-      
+
       const promises = tokenIds.map(tokenId =>
         Promise.all([
           readContract(wagmiConfig, {
@@ -3268,21 +3286,21 @@ async function fetchLeaderboardFromBlockchain() {
             args: [BigInt(tokenId)]
           })
         ]).then(([owner, traits]) => ({ tokenId, owner, rarity: Number(traits[1]) }))
-        .catch(e => {
-          console.log(`⚠️ Token ${tokenId} fetch failed:`, e.message);
-          return null;
-        })
+          .catch(e => {
+            console.log(`⚠️ Token ${tokenId} fetch failed:`, e.message);
+            return null;
+          })
       );
-      
+
       const results = await Promise.all(promises);
-      
+
       results.forEach(result => {
         if (result && result.owner) {
           const { owner, rarity } = result;
           const ownerLower = owner.toLowerCase();
-          
+
           holderMap.set(ownerLower, (holderMap.get(ownerLower) || 0) + 1);
-          
+
           if (!rarityMap.has(ownerLower)) {
             rarityMap.set(ownerLower, { mythic: 0, legendary: 0, rare: 0, common: 0 });
           }
@@ -3293,22 +3311,22 @@ async function fetchLeaderboardFromBlockchain() {
           else rarities.common++;
         }
       });
-      
+
       // Progress indicator
       const progress = Math.round((chunkIndex + 1) / totalChunks * 100);
       console.log(`⏳ Progress: ${progress}% (Chunk ${chunkIndex + 1}/${totalChunks})`);
-      
+
       // Small delay to avoid rate limiting
       if (chunkIndex < totalChunks - 1) {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
     }
-    
+
     const totalTracked = Array.from(holderMap.values()).reduce((sum, count) => sum + count, 0);
     console.log(`✅ Blockchain scan complete!`);
     console.log(`📊 Total NFTs tracked: ${totalTracked}/${total}`);
     console.log(`👥 Unique holders: ${holderMap.size}`);
-    
+
     const leaderboard = Array.from(holderMap.entries())
       .map(([address, count]) => ({
         address,
@@ -3322,14 +3340,14 @@ async function fetchLeaderboardFromBlockchain() {
         return b.rarities.legendary - a.rarities.legendary;
       })
       .slice(0, 10);
-    
+
     // Cache the result
     leaderboardCache = leaderboard;
     leaderboardLastFetch = Date.now();
-    
+
     console.log(`🏆 Top 10 collectors ready!`);
     return leaderboard;
-    
+
   } catch (e) {
     console.error('❌ Blockchain scan error:', e);
     return [];
@@ -3338,7 +3356,7 @@ async function fetchLeaderboardFromBlockchain() {
 
 async function fetchHolderRarities(address, count, tokenOwners) {
   const rarities = { mythic: 0, legendary: 0, rare: 0, common: 0 };
-  
+
   // Get all tokens owned by this address from the tokenOwners map
   const ownedTokens = [];
   for (const [tokenId, owner] of tokenOwners.entries()) {
@@ -3346,18 +3364,18 @@ async function fetchHolderRarities(address, count, tokenOwners) {
       ownedTokens.push(tokenId);
     }
   }
-  
+
   if (ownedTokens.length === 0) {
     return rarities;
   }
-  
+
   console.log(`Fetching rarities for ${address}: ${ownedTokens.length} tokens`);
-  
+
   // Process in batches to avoid overwhelming the RPC
   const batchSize = 20;
   for (let i = 0; i < ownedTokens.length; i += batchSize) {
     const batch = ownedTokens.slice(i, i + batchSize);
-    
+
     const rarityPromises = batch.map(tokenId =>
       readContract(wagmiConfig, {
         address: contractDetails.address,
@@ -3365,28 +3383,28 @@ async function fetchHolderRarities(address, count, tokenOwners) {
         functionName: 'tokenTraits',
         args: [BigInt(tokenId)]
       })
-      .then(traits => Number(traits[1]))
-      .catch(err => {
-        console.warn(`Failed to fetch rarity for token ${tokenId}:`, err.message);
-        return 0; // Default to common on error
-      })
+        .then(traits => Number(traits[1]))
+        .catch(err => {
+          console.warn(`Failed to fetch rarity for token ${tokenId}:`, err.message);
+          return 0; // Default to common on error
+        })
     );
-    
+
     const rarityValues = await Promise.all(rarityPromises);
-    
+
     rarityValues.forEach(rarity => {
       if (rarity === 3) rarities.mythic++;
       else if (rarity === 2) rarities.legendary++;
       else if (rarity === 1) rarities.rare++;
       else rarities.common++;
     });
-    
+
     // Small delay between batches to avoid rate limiting
     if (i + batchSize < ownedTokens.length) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
-  
+
   console.log(`Rarities for ${address}:`, rarities);
   return rarities;
 }
@@ -3394,19 +3412,19 @@ async function fetchHolderRarities(address, count, tokenOwners) {
 function renderLeaderboard(leaderboard) {
   const container = document.getElementById('leaderboardContainer');
   if (!container) return;
-  
+
   if (leaderboard.length === 0) {
     container.innerHTML = '<div class="empty-state">No data yet. Be the first collector! 🎯</div>';
     return;
   }
-  
+
   const medals = ['🥇', '🥈', '🥉'];
-  
+
   container.innerHTML = leaderboard.map((holder, index) => {
     const rank = index + 1;
     const medal = medals[index] || `#${rank}`;
     const isYou = userAddress && holder.address === userAddress.toLowerCase();
-    
+
     return `
       <div class="leaderboard-item ${isYou ? 'your-rank' : ''}" style="animation: slideUp ${0.1 * (index + 1)}s ease-out;">
         <div class="rank-badge">${medal}</div>
@@ -3434,12 +3452,12 @@ let leaderboardInterval = null;
 
 function startLeaderboardPolling() {
   if (leaderboardInterval) return;
-  
+
   // Initial load with delay to ensure contract is ready
   setTimeout(() => {
     updateLeaderboard();
   }, 2000);
-  
+
   leaderboardInterval = setInterval(updateLeaderboard, 120000); // Every 2 minutes
 }
 
@@ -3466,9 +3484,9 @@ async function updateWalletBalance() {
   const balanceBox = document.getElementById('walletBalanceBox');
   const celoBalanceEl = document.getElementById('celoBalance');
   const celoBalanceUSDEl = document.getElementById('celoBalanceUSD');
-  
+
   if (!userAddress || !balanceBox || !wagmiConfig) return;
-  
+
   try {
     // Get CELO balance
     // --- FIX 2: Use getBalance from wagmi/core, not non-existent publicClient ---
@@ -3478,10 +3496,10 @@ async function updateWalletBalance() {
     });
     const balance = balanceData.value; // getBalance returns an object, we need the .value
     // --- END FIX ---
-    
+
     const balanceInCelo = Number(balance) / 1e18;
     celoBalanceEl.textContent = balanceInCelo.toFixed(4) + ' CELO';
-    
+
     // Get CELO price if not already fetched
     if (celoPrice === 0) {
       try {
@@ -3491,11 +3509,11 @@ async function updateWalletBalance() {
         console.log('Could not fetch CELO price for USD conversion');
       }
     }
-    
+
     // Calculate USD value
     const usdValue = balanceInCelo * celoPrice;
     celoBalanceUSDEl.textContent = `≈ $${usdValue.toFixed(2)} USD`;
-    
+
     balanceBox.classList.remove('hidden');
   } catch (e) {
     console.error('Failed to fetch wallet balance:', e);
@@ -3515,7 +3533,7 @@ function switchTab(tabName) {
       btn.classList.remove('active');
     }
   });
-  
+
   // Update content
   tabContents.forEach(content => {
     if (content.id === tabName + 'Tab') {
@@ -3524,12 +3542,12 @@ function switchTab(tabName) {
       content.classList.remove('active');
     }
   });
-  
+
   // Show/hide sections based on tab
   const recentSection = document.getElementById('recentMintsSection');
   const leaderboardSection = document.getElementById('leaderboardSection');
   const achievementsSection = document.getElementById('achievementsSection');
-  
+
   if (tabName === 'gallery') {
     // Hide all three sections in gallery tab
     if (recentSection) recentSection.style.display = 'none';
@@ -3540,17 +3558,17 @@ function switchTab(tabName) {
     if (recentSection) recentSection.style.display = 'block';
     if (leaderboardSection) leaderboardSection.style.display = 'none';
     if (achievementsSection) achievementsSection.style.display = 'none';
-    
+
     // Reset toggle buttons to show only Recent active
     const recentBtn = document.getElementById('toggleRecentBtn');
     const leaderboardBtn = document.getElementById('toggleLeaderboardBtn');
     const achievementsBtn = document.getElementById('toggleAchievementsBtn');
-    
+
     if (recentBtn) recentBtn.classList.add('active');
     if (leaderboardBtn) leaderboardBtn.classList.remove('active');
     if (achievementsBtn) achievementsBtn.classList.remove('active');
   }
-  
+
   // Load content based on tab
   if (tabName === 'gallery') {
     loadGallery();
@@ -3569,21 +3587,21 @@ const toggleButtons = document.querySelectorAll('.toggle-btn');
 toggleButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const section = btn.dataset.section;
-    
+
     // Remove active from all buttons
     toggleButtons.forEach(b => b.classList.remove('active'));
     // Add active to clicked button
     btn.classList.add('active');
-    
+
     // Hide all sections
     const recentSection = document.getElementById('recentMintsSection');
     const leaderboardSection = document.getElementById('leaderboardSection');
     const achievementsSection = document.getElementById('achievementsSection');
-    
+
     if (recentSection) recentSection.style.display = 'none';
     if (leaderboardSection) leaderboardSection.style.display = 'none';
     if (achievementsSection) achievementsSection.style.display = 'none';
-    
+
     // Show selected section
     if (section === 'recent' && recentSection) {
       recentSection.style.display = 'block';
@@ -3601,14 +3619,14 @@ let userNFTs = [];
 
 async function loadGallery() {
   const galleryGrid = document.getElementById('galleryGrid');
-  
+
   if (!userAddress || !contractDetails) {
     galleryGrid.innerHTML = '<div class="empty-state">Connect wallet to view your NFTs</div>';
     return;
   }
-  
+
   galleryGrid.innerHTML = '<div class="empty-state">Loading your NFTs... ⏳</div>';
-  
+
   try {
     // Get user's NFT count
     const balance = await readContract(wagmiConfig, {
@@ -3617,24 +3635,24 @@ async function loadGallery() {
       functionName: 'balanceOf',
       args: [userAddress]
     });
-    
+
     const nftCount = Number(balance);
-    
+
     if (nftCount === 0) {
       galleryGrid.innerHTML = '<div class="empty-state">You don\'t own any NFTs yet. Mint your first one! 🎨</div>';
       return;
     }
-    
+
     // Get total supply to scan
     const totalSupply = await readContract(wagmiConfig, {
       address: contractDetails.address,
       abi: contractDetails.abi,
       functionName: 'totalSupply'
     });
-    
+
     const total = Number(totalSupply);
     userNFTs = [];
-    
+
     // Scan for user's NFTs
     const promises = [];
     for (let i = 1; i <= total && userNFTs.length < nftCount; i++) {
@@ -3662,10 +3680,10 @@ async function loadGallery() {
         }).catch(() => null)
       );
     }
-    
+
     const results = await Promise.all(promises);
     userNFTs = results.filter(nft => nft !== null);
-    
+
     renderGallery(userNFTs);
   } catch (e) {
     console.error('Failed to load gallery:', e);
@@ -3677,14 +3695,14 @@ function renderGallery(nfts) {
   const galleryGrid = document.getElementById('galleryGrid');
   const rarityFilter = document.getElementById('rarityFilter').value;
   const sortFilter = document.getElementById('sortFilter').value;
-  
+
   // Filter by rarity
   let filtered = nfts;
   if (rarityFilter !== 'all') {
     const rarityMap = { 'common': 0, 'rare': 1, 'legendary': 2, 'mythic': 3 };
     filtered = nfts.filter(nft => nft.rarity === rarityMap[rarityFilter]);
   }
-  
+
   // Sort
   filtered.sort((a, b) => {
     if (sortFilter === 'newest') return b.timestamp - a.timestamp;
@@ -3693,15 +3711,15 @@ function renderGallery(nfts) {
     if (sortFilter === 'tokenId') return a.tokenId - b.tokenId;
     return 0;
   });
-  
+
   if (filtered.length === 0) {
     galleryGrid.innerHTML = '<div class="empty-state">No NFTs match your filters</div>';
     return;
   }
-  
+
   const rarityLabels = ['Common', 'Rare', 'Legendary', 'Mythic'];
   const rarityColors = ['#9ca3af', '#3b82f6', '#f59e0b', '#ec4899'];
-  
+
   galleryGrid.innerHTML = filtered.map(nft => `
     <div class="gallery-item" data-token-id="${nft.tokenId}">
       <div class="gallery-item-image">
@@ -3717,7 +3735,7 @@ function renderGallery(nfts) {
       </div>
     </div>
   `).join('');
-  
+
   // Add click listeners after rendering
   galleryGrid.querySelectorAll('.gallery-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -3726,15 +3744,15 @@ function renderGallery(nfts) {
     });
   });
 
-function viewNFTDetails(tokenId) {
-  // Switch to mint tab and preview this NFT
-  switchTab('mint');
-  lastMintedTokenId = tokenId;
-  previewNft(tokenId);
-}
+  function viewNFTDetails(tokenId) {
+    // Switch to mint tab and preview this NFT
+    switchTab('mint');
+    lastMintedTokenId = tokenId;
+    previewNft(tokenId);
+  }
 
-// Expose to global scope for onclick handlers
-window.viewNFTDetails = viewNFTDetails;
+  // Expose to global scope for onclick handlers
+  window.viewNFTDetails = viewNFTDetails;
 }
 
 // Add filter listeners
@@ -3834,9 +3852,9 @@ async function loadAchievementsBottom() {
   const achievementsGrid = document.getElementById('achievementsGrid2');
   const achievementCount = document.getElementById('achievementCount2');
   const totalAchievements = document.getElementById('totalAchievements2');
-  
+
   if (!achievementsGrid) return;
-  
+
   // Ensure userNFTs are loaded for accurate achievement checking
   if (userNFTs.length === 0 && userAddress && contractDetails) {
     try {
@@ -3846,19 +3864,19 @@ async function loadAchievementsBottom() {
         functionName: 'balanceOf',
         args: [userAddress]
       });
-      
+
       const nftCount = Number(balance);
-      
+
       if (nftCount > 0) {
         const totalSupply = await readContract(wagmiConfig, {
           address: contractDetails.address,
           abi: contractDetails.abi,
           functionName: 'totalSupply'
         });
-        
+
         const total = Number(totalSupply);
         const promises = [];
-        
+
         for (let i = 1; i <= total; i++) {
           promises.push(
             readContract(wagmiConfig, {
@@ -3884,7 +3902,7 @@ async function loadAchievementsBottom() {
             }).catch(() => null)
           );
         }
-        
+
         const results = await Promise.all(promises);
         userNFTs = results.filter(nft => nft !== null);
       }
@@ -3892,13 +3910,13 @@ async function loadAchievementsBottom() {
       console.error('Failed to load NFTs for achievements:', e);
     }
   }
-  
+
   let unlockedCount = 0;
-  
+
   const html = achievements.map(achievement => {
     const unlocked = achievement.check();
     if (unlocked) unlockedCount++;
-    
+
     return `
       <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
         <div class="achievement-icon">${achievement.icon}</div>
@@ -3908,11 +3926,11 @@ async function loadAchievementsBottom() {
       </div>
     `;
   }).join('');
-  
+
   achievementsGrid.innerHTML = html;
   if (achievementCount) achievementCount.textContent = unlockedCount;
   if (totalAchievements) totalAchievements.textContent = achievements.length;
-  
+
   // Save achievements to localStorage
   safeLocalStorage.setItem('achievements', JSON.stringify({
     unlocked: unlockedCount,
