@@ -457,8 +457,7 @@ export default async function handler(req, res) {
     markAsProcessed(mintTxHash, userAddress);
     
     // Log success with balance info
-    console.log(`✅ Airdrop sent successfully:
-      Token ID: ${tokenId}
+    console.log(`✅ Flicker airdrop sent: Token #${tokenId}
       Recipient: ${userAddress}
       Base Amount: ${result.baseAmount} CELO
       Lucky Multiplier: ${result.luckyMultiplier}x

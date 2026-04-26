@@ -169,12 +169,12 @@ const storage = new NotificationStorage();
 const NOTIFICATION_MESSAGES = [
   {
     id: 'daily-mint',
-    title: '🎨 Daily NFT Mint Time!',
+    title: '🔥 Flicker Daily Drop!',
     body: 'CELO price is moving! Mint an NFT with live price snapshot and get instant airdrop today! 💰'
   },
   {
     id: 'daily-airdrop',
-    title: '💰 Your Daily Airdrop Awaits!',
+    title: '⚡ Predict & Earn on Flicker',
     body: 'Mint a CELO NFT now → Get instant airdrop + predict price for 2x bonus! 🎯'
   },
   {
