@@ -1,6 +1,6 @@
-# CeloNFT 🎨
+# Flicker 🎨
 
-[![Live App](https://img.shields.io/badge/Live-Vercel-black?style=for-the-badge&logo=vercel)](https://celo-nft-phi.vercel.app)
+[![Live App](https://img.shields.io/badge/Live-Vercel-black?style=for-the-badge&logo=vercel)](https://flick-er.vercel.app)
 [![Farcaster](https://img.shields.io/badge/Farcaster-Mini_App-purple?style=for-the-badge&logo=farcaster)](https://farcaster.xyz/miniapps/Tip8ngTAKnHC/celo-nft)
 [![Contract](https://img.shields.io/badge/Contract-Celo-yellow?style=for-the-badge&logo=ethereum)](https://celoscan.io/address/0xe90EC6F3f5C15cC76861CA5d41CD879548208Eff)
 
@@ -115,8 +115,8 @@ npm >= 9.0.0
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/CryptoExplor/CeloNFT.git
-cd CeloNFT
+git clone https://github.com/CryptoExplor/Flicker.git
+cd Flicker
 ```
 
 2. **Install dependencies**
@@ -146,7 +146,7 @@ BITQUERY_API_KEY=your_bitquery_key_here
 # Required for notifications
 NEYNAR_API_KEY=your_neynar_key_here
 CRON_SECRET=your_secret_here
-MINIAPP_URL=https://celo-nft-phi.vercel.app/
+MINIAPP_URL=https://flick-er.vercel.app/
 
 # Vercel KV (Redis) - Get from Vercel Dashboard
 KV_URL=your_kv_url
@@ -186,7 +186,7 @@ vercel deploy
 ## 📁 Project Structure
 
 ```
-CeloNFT/
+Flicker/
 ├── api/
 │   ├── airdrop.js              # Main airdrop with lucky bonuses & predictions
 │   ├── prediction.js           # Price prediction game backend (KV storage)
@@ -644,15 +644,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Developer**: [@kumar14700](https://x.com/kumar14700) on X/Twitter
 - **Farcaster**: [@dare1.eth](https://farcaster.xyz/dare1.eth)
-- **Issues**: [GitHub Issues](https://github.com/CryptoExplor/CeloNFT/issues)
+- **Issues**: [GitHub Issues](https://github.com/CryptoExplor/Flicker/issues)
 - **Email**: ravikumar699121@gmail.com
 
 ## 🔗 Links
 
-- **Live App**: [celo-nft-phi.vercel.app](https://celo-nft-phi.vercel.app)
+- **Live App**: [flick-er.vercel.app](https://flick-er.vercel.app)
 - **Farcaster Mini App**: [farcaster.xyz/miniapps/Tip8ngTAKnHC/celo-nft](https://farcaster.xyz/miniapps/Tip8ngTAKnHC/celo-nft)
 - **Smart Contract**: [celoscan.io/address/0xe90EC6F3f5C15cC76861CA5d41CD879548208Eff](https://celoscan.io/address/0xe90EC6F3f5C15cC76861CA5d41CD879548208Eff)
-- **GitHub**: [github.com/CryptoExplor/CeloNFT](https://github.com/CryptoExplor/CeloNFT)
+- **GitHub**: [github.com/CryptoExplor/Flicker](https://github.com/CryptoExplor/Flicker)
 
 ---
 
