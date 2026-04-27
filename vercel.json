@@ -1,11 +1,5 @@
 {
-  "redirects": [
-    {
-      "source": "/.well-known/farcaster.json",
-      "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/01998c65-4e8a-d55e-f794-a5978732e140",
-      "permanent": false
-    }
-  ],
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -19,6 +13,19 @@
         {
           "key": "Content-Type",
           "value": "application/json"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/(icon|splash|image).png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
     }
