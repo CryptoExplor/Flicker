@@ -2,13 +2,27 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/.well-known/farcaster.json",
+      "has": [
+        {
+          "type": "host",
+          "value": "celo-nft-phi.vercel.app"
+        }
+      ],
+      "destination": "/.well-known/farcaster-old.json"
+    },
+    {
+      "source": "/.well-known/farcaster.json",
+      "destination": "/.well-known/farcaster-new.json"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     }
   ],
   "headers": [
     {
-      "source": "/.well-known/farcaster.json",
+      "source": "/.well-known/farcaster(-old|-new)?\\.json",
       "headers": [
         {
           "key": "Content-Type",
