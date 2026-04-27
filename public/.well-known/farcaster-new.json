@@ -1,16 +1,7 @@
 {
-  "accountAssociation": {
-    "header": "eyJmaWQiOjYxMjA2NiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDg4ZDA1OGRCNmUwRjRmN2M5NjI0NDdGNTJDYTlkYUZiNUJhNzMyQWEifQ",
-    "payload": "eyJkb21haW4iOiJjZWxvLW5mdC1waGkudmVyY2VsLmFwcCJ9",
-    "signature": "MHg1YTExN2ZiNGE5ZmQ3Y2EyYmY0ZjIyMjJhZjM3MWU4ZmZmYjEyZmQ2YTIxNTBhOTdjNDcwNTc3ODgyNDYxY2UzMDJlOWQ3ODdlZWVlODM5MmMzMjZiNTY0NDYzNTMzNzc3NDU1MTdhNjU3YWRhNzNmN2QyMWE4ZDU2ZGQ4NDU3MzFj"
-  },
-  "baseBuilder": {
-    "allowedAddresses": [
-      "0xA5f2c343813B6fb6fE947C2C4759F2c421a346a7"
-    ]
-  },
-  "miniapp": {
+  "frame": {
     "name": "Flicker",
+    "version": "1",
     "iconUrl": "https://flick-er.vercel.app/icon.png",
     "homeUrl": "https://flick-er.vercel.app",
     "imageUrl": "https://flick-er.vercel.app/image.png",
@@ -19,13 +10,26 @@
     "splashBackgroundColor": "#FFFF66",
     "webhookUrl": "https://flick-er.vercel.app/api/webhook",
     "subtitle": "Predict. Mint. Earn.",
-    "description": "Flicker: 60-second price prediction game + NFT minting on Celo. Predict correctly for 2x airdrop. Lucky tokens, rarity bonuses, Farcaster integration.",
+    "description": "Flicker: 60-second price prediction game on Celo. Predict correctly for 2x airdrop. Lucky tokens, rarity bonuses, Farcaster integration.",
+    "primaryCategory": "games",
     "tags": [
       "flicker",
       "celo",
       "base",
       "prediction",
       "mint"
+    ],
+    "tagline": "Predict. Mint. Earn.",
+    "ogTitle": "Flicker - Predict. Mint. Earn."
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjYxMjA2NiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDg4ZDA1OGRCNmUwRjRmN2M5NjI0NDdGNTJDYTlkYUZiNUJhNzMyQWEifQ",
+    "payload": "eyJkb21haW4iOiJmbGljay1lci52ZXJjZWwuYXBwIn0",
+    "signature": "Bq2sKlE2dIaJfW5QuuonQTTlbPR3luMw+/t2Vs6VmZdhtS8yPPBS7AbfisVSA6M9NzQrPkGTKwfhj3phYyuxUBw="
+  },
+  "baseBuilder": {
+    "allowedAddresses": [
+      "0xA5f2c343813B6fb6fE947C2C4759F2c421a346a7"
     ]
   }
 }
